@@ -43,7 +43,7 @@ The MPC algorithm then can be described as:
 
 # How to use
 
-Just placed "[mpc\_engl](mpc_engl)" folder on your Arduino installation folder and run with it! The system configuration can be customized in konfig.h, where you can play around with parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)`, the length of `X, U, Z vector`, etc. The LTI system definition can be read at mpc\_engl.ino file.
+Just place one of the implementation folder ("[mpc\_engl](mpc_engl)", "[mpc_opt_engl](mpc_opt_engl)", or "[mpc_least_square_engl](mpc_least_square_engl)") on your Arduino installation folder and run with it! The system configuration can be customized in konfig.h, where you can play around with parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)`, the length of `X, U, Z vector`, etc. The LTI system definition can be read at mpc*.ino file.
 
 The MPC code itself is self contained and spread over just 4 files (mpc.cpp, mpc.h, matrix.h, konfig.h), so you shouldn't have difficulty at understanding the code. You just need to construct the MPC class, initialize it with function `MPC::vReInit(A, B, C, weightQ, weightR)` (where the `A, B, C` is the LTI matrix and the `weightQ, weightR` is the diagonal value of the MPC weight matrix Q and R) and call the function `MPC::bUpdate(SP, X, U)` at every sampling time to calculate the control value `U(k)`.
 
@@ -55,12 +55,14 @@ The code is tested on compiler Arduino IDE 1.8.10 and hardware Teensy 4.0 Platfo
 
 # Some benchmark
 
-To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1) (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4.
+To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1), where the configuration is (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4. The compiler is Arduino IDE 1.8.10 and the hardware is Teensy 4.0.
 
 The computation time needed to compute one iteration `MPC::bUpdate(SP, X, U)` are (*drum-roll*):
 1. Naive implementation (in mpc_engl folder): **187 us** to compute one iteration (single precision math) or **312 us** (double precision).
 2. Optimized version of the naive implementation (in mpc_opt_engl): **31 us** to compute one iteration (single precision math) or **59 us** (double precision).
 3. The numerically robust version (in mpc_least_square_engl): **101 us** to compute one iteration (single precision math) or **184 us** (double precision).
+
+(Teensy 4.0 is wicked fast!)
 
 
 The result, plotted using Scilab (you can see moving-the-output-before-the-set-point-changed characteristic unique to MPC, and the input coupling reduction mechanism):
