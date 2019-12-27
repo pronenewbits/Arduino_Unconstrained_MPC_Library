@@ -80,7 +80,7 @@ Or if you don't want to install Scilab, you can use Arduino's Serial Plotter (wi
 
 Maybe in the future I'll implement support for constrained MPC using Quadratic Programming solver (or even Mixed Integer QuadProg!). In the meantime, it will be nice if you can test & validate my result or inform me if there are some bugs you encounter along the way! (or if you notice some grammar error in the documentation).
 
-The matrix.h library's code documentation is still in Indonesian, I plant to translate it into English soon (stay tuned!).
+The matrix.h library's code documentation is still in Indonesian, I plan to translate it into English soon (stay tuned!).
 
 I published the code under CC0 license, effectively placed the code on public domain. But it will be great if you can tell me if you use the code, for what/why. That means a lot to me and give me motivation to expand the work (⌒▽⌒)
 
