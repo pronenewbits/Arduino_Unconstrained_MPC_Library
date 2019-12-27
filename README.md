@@ -4,7 +4,7 @@ This is a compact (unconstrained) Model Predictive Control (MPC) library for Tee
 # The background
 I believe the concept and mathematics of (linear) MPC should be attainable from the undergraduate control system engineering student's level of education. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable to tacking real-time control system implementation.
 
-The MPC formula derivation can be described as (I'm using Jan Maciejowski's Predictive Control with Constraints as reference, great book btw) :
+The MPC formula derivation can be described as (I'm using Jan Maciejowski's *Predictive Control with Constraints* as reference, great book btw) :
 ![MPC derivation](Penurunan.png "Penurunan.png")
 
 # The implementations
