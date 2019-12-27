@@ -18,7 +18,7 @@ The implementations are (from the simplest to the most advanced):
 The MPC code are spread over just 4 files (mpc.cpp, mpc.h, matrix.h, konfig.h) - read *How to Use* section below for more explanation.
 
 ## The first implementation description: The Naive Implementation
-The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as:
+The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as (the source code can be found in "[mpc_engl](mpc_engl)" folder)::
 ![MPC Naive algorithm](Kalkulasi.png "Kalkulasi.png")
 
 Note that the `H` matrix and some of `G` matrix actually a constant. So we should be able to move them into Initialization step (just calculate once).
@@ -27,7 +27,7 @@ Note that the `H` matrix and some of `G` matrix actually a constant. So we shoul
 The optimized version is exploiting 2 facts of The Naive Implementation:
 1. The `H` matrix and some of `G` matrix (specifically the `2 * THETA' * Q * THETA` portion) actually a constant.
 2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * THETA' * Q * THETA) * E(k)`. And actually we don't need all row of the matrix `1/2 * H^-1 * (2 * THETA' * Q * THETA)` (because we only interested on the first M-th row to calculate `du(k)`).
-With that in mind, we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as:
+With that in mind, we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as (the source code can be found in "[mpc_opt_engl](mpc_opt_engl)" folder):
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Kalkulasi_optimized.png")
 
 ## The third implementation description: The Numerically Robust Version
@@ -37,7 +37,7 @@ We need to change the inversion operation using mathematically equivalent operat
 2. The `THETA` matrix is often ill conditioned, so the `((CTHETA') * Q * CTHETA)` calculation is bad.
 This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the bigger condition number of a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number). We can avoid the `((CTHETA') * Q * CTHETA)` by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation).
 
-The MPC algorithm then can be described as:
+The MPC algorithm then can be described as (the source code can be found in "[mpc_least_square_engl](mpc_least_square_engl)"):
 ![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "Kalkulasi_as_least_squares.png")
 (I'm using householder transformation to calculate the QR decomposition).
 
@@ -60,9 +60,9 @@ The code is tested on compiler Arduino IDE 1.8.10 and hardware Teensy 4.0 Platfo
 To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1), where the configuration is (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4. The compiler is Arduino IDE 1.8.10 with default setting (compiler optimization setting: faster) and the hardware is Teensy 4.0.
 
 The computation time needed to compute one iteration `MPC::bUpdate(SP, X, U)` are (*drum-roll*):
-1. Naive implementation (in mpc_engl folder): **187 us** to compute one iteration (single precision math) or **312 us** (double precision).
-2. Optimized version of the naive implementation (in mpc_opt_engl): **31 us** to compute one iteration (single precision math) or **59 us** (double precision).
-3. The numerically robust version (in mpc_least_square_engl): **101 us** to compute one iteration (single precision math) or **184 us** (double precision).
+1. Naive implementation (in "[mpc_engl](mpc_engl)" folder): **187 us** to compute one iteration (single precision math) or **312 us** (double precision).
+2. Optimized version of the naive implementation (in "[mpc_opt_engl](mpc_opt_engl)"): **31 us** to compute one iteration (single precision math) or **59 us** (double precision).
+3. The numerically robust version (in "[mpc_least_square_engl](mpc_least_square_engl)"): **101 us** to compute one iteration (single precision math) or **184 us** (double precision).
 
 (Teensy 4.0 is wicked fast!)
 
