@@ -1,5 +1,5 @@
 # Arduino_MPC_Library
-This is a compact (unconstrained) Model Predictive Control (MPC) library for Teensy 4.0 system (or Arduino system in general).
+This is a compact (unconstrained) Model Predictive Control (MPC) library for Teensy4.0/Arduino system (or real time embedded system in general).
 
 # The Background
 I believe the concept and mathematics of (linear) MPC should be attainable from the undergraduate control system engineering student's level of education. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation.
