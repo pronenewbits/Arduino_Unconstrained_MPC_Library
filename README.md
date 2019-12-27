@@ -2,15 +2,15 @@
 This is a compact (unconstrained) Model Predictive Control (MPC) library for Teensy 4.0 system (or Arduino system in general).
 
 # The Background
-I believe the concept and mathematics of (linear) MPC should be attainable from the undergraduate control system engineering student's level of education. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable to tacking real-time control system implementation.
+I believe the concept and mathematics of (linear) MPC should be attainable from the undergraduate control system engineering student's level of education. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation.
 
 The MPC formula derivation can be described as (I'm using Jan Maciejowski's *Predictive Control with Constraints* as reference, great book btw) :
 ![MPC derivation](Penurunan.png "Penurunan.png")
 
 # The Implementations
-The implementations of the MPC control calculation are consist of three main implementations, each of the implementation is self contained and outputted same control output. The differences between them are in the readability, the speed, and the robustness of the control algorithm. I suggest you to read them all to understand the mathematics behind them.
+The implementations of the MPC control calculation are consist of three main implementations, each of the implementation is self contained and calculate the same (control) output. The differences between them are in the readability, the speed, and the numerical robustness of the control algorithm. If you still learning about MPC, I suggest you to read them all to understand the mathematics behind them.
 
-The implementations are (from the easiest to the hardest to understand):
+The implementations are (from the simplest to the most advanced):
 1. Naive Implementation (in mpc_engl folder). *Use this if you want to understand MPC (by reading the code) for the first time.*
 2. Optimized version of the Naive Implementation (in mpc_opt_engl). *Use this if you want the fastest implementation.*
 3. The numerically robust version (in mpc_least_square_engl). *Use this if you want the most robust implementation.*
@@ -43,19 +43,19 @@ The MPC algorithm then can be described as:
 
 # How to Use
 
-Just place one of the implementation folder ("[mpc\_engl](mpc_engl)", "[mpc_opt_engl](mpc_opt_engl)", or "[mpc_least_square_engl](mpc_least_square_engl)") on your Arduino installation folder and run with it! The system configuration can be customized in konfig.h, where you can play around with parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)`, the length of `X, U, Z vector`, etc. The LTI system definition can be read at mpc*.ino file.
+Just place one of the implementation folder ("[mpc\_engl](mpc_engl)", "[mpc_opt_engl](mpc_opt_engl)", or "[mpc_least_square_engl](mpc_least_square_engl)") in your Arduino installation folder and run with it! The system configuration can be customized in konfig.h, where you can play around with parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)`, the length of `X, U, Z vector`, etc. The example to use the code and the LTI system definition can be read at mpc*.ino file.
 
 The MPC code itself is self contained and spread over just 4 files (mpc.cpp, mpc.h, matrix.h, konfig.h), so you shouldn't have difficulty at understanding the code. You just need to construct the MPC class, initialize it with function `MPC::vReInit(A, B, C, weightQ, weightR)` (where the `A, B, C` is the LTI matrix and the `weightQ, weightR` is the diagonal value of the MPC weight matrix Q and R) and call the function `MPC::bUpdate(SP, X, U)` at every sampling time to calculate the control value `U(k)`.
 
 The code is tested on compiler Arduino IDE 1.8.10 and hardware Teensy 4.0 Platform.
 
-**Important note: For Teensy 4.0, I encounter RAM limitation where the `MATRIX_MAXIMUM_SIZE` can't be no more than 28 (if you using double precision) or 40 (if using single precision). If you already set more than that, your Teensy might be unable to be programmed (a bug in the Teensy bootloader?). The solution is simply to change the `MATRIX_MAXIMUM_SIZE` to be less than that, compile & upload the code from the compiler (the IDE then will protest that it cannot find the Teensy board), and click the program button on the Teensy board to force the bootloader to restart and download the firmware from the computer.**
+**Important note: For Teensy 4.0, I encounter RAM limitation where the `MATRIX_MAXIMUM_SIZE` can't be more than 28 (if you are using double precision) or 40 (if using single precision). If you already set more than that, your Teensy might be unable to be programmed (a bug in the Teensy bootloader?). The solution is simply to change the `MATRIX_MAXIMUM_SIZE` to be less than that, compile & upload the code from the compiler (the IDE then will protest that it cannot find the Teensy board), and click the program button on the Teensy board to force the bootloader to restart and download the firmware from the computer.**
 
 
 
 # Some Benchmark
 
-To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1), where the configuration is (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4. The compiler is Arduino IDE 1.8.10 and the hardware is Teensy 4.0.
+To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1), where the configuration is (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4. The compiler is Arduino IDE 1.8.10 with default setting (compiler optimization setting: faster) and the hardware is Teensy 4.0.
 
 The computation time needed to compute one iteration `MPC::bUpdate(SP, X, U)` are (*drum-roll*):
 1. Naive implementation (in mpc_engl folder): **187 us** to compute one iteration (single precision math) or **312 us** (double precision).
