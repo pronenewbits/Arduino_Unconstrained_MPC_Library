@@ -10,6 +10,8 @@ The MPC formula derivation can be described as (I'm using Jan Maciejowski's *Pre
 # The Implementations
 The implementations of the MPC control calculation consist of three main implementations, each of the implementation is self contained and calculate the same (control) output. The differences between them are in the readability, the speed, and the numerical robustness of the control algorithm. If you still learning about MPC, I suggest you to read them all to understand the mathematics behind them.
 
+The MPC code are spread over just 4 files (mpc.cpp, mpc.h, matrix.h, konfig.h) - read *How to Use* section below for more explanation.
+
 The implementations are (from the simplest to the most advanced):
 1. Naive Implementation (in mpc_engl folder). *Use this if you want to understand MPC (by reading the code) for the first time.*
 2. Optimized version of the Naive Implementation (in mpc_opt_engl). *Use this if you want the fastest implementation.*
