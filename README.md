@@ -11,14 +11,14 @@ The MPC formula derivation can be described as (I'm using Jan Maciejowski's *Pre
 The implementations of the MPC control calculation consist of three main implementations, each of the implementation is self contained and calculate the same (control) output. The differences between them are in the readability, the speed, and the numerical robustness of the control algorithm. If you are still learning about MPC, I suggest you to read them all to understand the mathematics behind them.
 
 The implementations are (from the simplest to the most advanced):
-1. Naive Implementation (in mpc_engl folder). **Use this if you want to understand MPC (by reading the code) for the first time.**
-2. Optimized version of the Naive Implementation (in mpc_opt_engl). **Use this if you want the fastest implementation.**
-3. The numerically robust version (in mpc_least_square_engl). **Use this if you want the most robust implementation.**
+1. Naive Implementation ([mpc_engl](mpc_engl)). **Use this if you want to understand MPC (by reading the code) for the first time.**
+2. Optimized version of the Naive Implementation ([mpc_opt_engl](mpc_opt_engl)). **Use this if you want the fastest implementation.**
+3. The numerically robust version ([mpc_least_square_engl](mpc_least_square_engl)). **Use this if you want the most robust implementation.**
 
 The MPC code are spread over just 4 files (mpc.cpp, mpc.h, matrix.h, konfig.h) - read *How to Use* section below for more explanation.
 
 ## The first implementation description: The Naive Implementation
-The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as (the source code can be found in "[mpc_engl](mpc_engl)" folder)::
+The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as (the source code can be found in "[mpc_engl](mpc_engl)" folder):
 ![MPC Naive algorithm](Kalkulasi.png "Kalkulasi.png")
 
 Note that the `H` matrix and some of `G` matrix actually a constant. So we should be able to move them into Initialization step (just calculate once).
@@ -27,6 +27,7 @@ Note that the `H` matrix and some of `G` matrix actually a constant. So we shoul
 The optimized version is exploiting 2 facts of The Naive Implementation:
 1. The `H` matrix and some of `G` matrix (specifically the `2 * THETA' * Q * THETA` portion) actually a constant.
 2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * THETA' * Q * THETA) * E(k)`. And actually we don't need all row of the matrix `1/2 * H^-1 * (2 * THETA' * Q * THETA)` (because we only interested on the first M-th row to calculate `du(k)`).
+
 With that in mind, we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as (the source code can be found in "[mpc_opt_engl](mpc_opt_engl)" folder):
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Kalkulasi_optimized.png")
 
