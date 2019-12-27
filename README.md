@@ -79,3 +79,6 @@ Maybe in the future I'll implement support for constrained MPC using Quadratic P
 The matrix.h library's code documentation is still in Indonesian, I plant to translate it into English soon (stay tuned!).
 
 I published the code under CC0 license, effectively placed the code on public domain. But it will be great if you can tell me if you use the code, for what/why. That means a lot to me and give me motivation to expand the work (⌒▽⌒)
+
+*This tutorial is adopted from Reddit post: https://reddit.com/r/ControlTheory/comments/efikg6/unconstrained_mpc_library_for_arduino_and_some/*
+
