@@ -24,7 +24,7 @@ The Naive Implementation algorithm is just a direct implementation of the MPC de
 Note that the `H` matrix and some of `G` matrix actually a constant. So we should be able to move them into Initialization step (just calculate once).
 
 ## The second implementation description: Optimized version of the Naive Implementation
-The optimized version is exploit 2 facts of The Naive Implementation:
+The optimized version is exploiting 2 facts of The Naive Implementation:
 1. The `H` matrix and some of `G` matrix (specifically the `2 * THETA' * Q * THETA` portion) actually a constant.
 2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * THETA' * Q * THETA) * E(k)`. And actually we don't need all row of the matrix `1/2 * H^-1 * (2 * THETA' * Q * THETA)` (because we only interested on the first M-th row to calculate `du(k)`).
 With that in mind, we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as:
