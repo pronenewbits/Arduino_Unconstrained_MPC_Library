@@ -1,13 +1,13 @@
 # Arduino_MPC_Library
 This is a compact (unconstrained) Model Predictive Control (MPC) library for Teensy 4.0 system (or Arduino system in general).
 
-# The background
+# The Background
 I believe the concept and mathematics of (linear) MPC should be attainable from the undergraduate control system engineering student's level of education. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable to tacking real-time control system implementation.
 
 The MPC formula derivation can be described as (I'm using Jan Maciejowski's *Predictive Control with Constraints* as reference, great book btw) :
 ![MPC derivation](Penurunan.png "Penurunan.png")
 
-# The implementations
+# The Implementations
 The implementations of the MPC control calculation are consist of three main implementations, each of the implementation is self contained and outputted same control output. The differences between them are in the readability, the speed, and the robustness of the control algorithm. I suggest you to read them all to understand the mathematics behind them.
 
 The implementations are (from the easiest to the hardest to understand):
@@ -28,7 +28,7 @@ The optimized version is exploit 2 facts of The Naive Implementation:
 With that in mind, we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as:
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Kalkulasi_optimized.png")
 
-## The third implementation description: The numerically robust version
+## The third implementation description: The Numerically Robust Version
 From the numerical analysis point of view, the first & second implementation can be bad because of 2 facts:
 1. Inverting the `H` matrix (using Gauss-Jordan like in above implementation) is bad.
 We need to change the inversion operation using mathematically equivalent operation (I use QR decomposition here).
@@ -41,7 +41,7 @@ The MPC algorithm then can be described as:
 
 
 
-# How to use
+# How to Use
 
 Just place one of the implementation folder ("[mpc\_engl](mpc_engl)", "[mpc_opt_engl](mpc_opt_engl)", or "[mpc_least_square_engl](mpc_least_square_engl)") on your Arduino installation folder and run with it! The system configuration can be customized in konfig.h, where you can play around with parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)`, the length of `X, U, Z vector`, etc. The LTI system definition can be read at mpc*.ino file.
 
@@ -53,7 +53,7 @@ The code is tested on compiler Arduino IDE 1.8.10 and hardware Teensy 4.0 Platfo
 
 
 
-# Some benchmark
+# Some Benchmark
 
 To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1), where the configuration is (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4. The compiler is Arduino IDE 1.8.10 and the hardware is Teensy 4.0.
 
@@ -74,7 +74,7 @@ Or if you don't want to install Scilab, you can use Arduino's Serial Plotter (wi
 ![Arduino Plotter result](Result_Serial_Plotter_Arduino_LR.png "Result_Serial_Plotter_Arduino_LR.png")
 
 
-# Closing remark
+# Closing Remark
 
 Maybe in the future I'll implement support for constrained MPC using Quadratic Programming solver (or even Mixed Integer QuadProg!). In the meantime, it will be nice if you can test & validate my result or inform me if there are some bugs you encounter along the way! (or if you notice some grammar error in the documentation).
 
