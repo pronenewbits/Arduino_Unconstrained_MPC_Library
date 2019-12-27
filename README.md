@@ -31,11 +31,11 @@ With that in mind, we can move the optimization matrix constant into initializat
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Kalkulasi_optimized.png")
 
 ## The third implementation description: The Numerically Robust Version
-From the numerical analysis point of view, the first & second implementation can be bad because of 2 facts:
+From the numerical analysis point of view, the first & second implementation is bad because of 2 facts:
 1. Inverting the `H` matrix (using Gauss-Jordan like in above implementation) is bad.
 We need to change the inversion operation using mathematically equivalent operation (I use QR decomposition here).
 2. The `THETA` matrix is often ill conditioned, so the `((CTHETA') * Q * CTHETA)` calculation is bad.
-The bad statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the more condition number a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number). We can avoid the `((CTHETA') * Q * CTHETA)` by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation).
+This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the more condition number a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number). We can avoid the `((CTHETA') * Q * CTHETA)` by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation).
 
 The MPC algorithm then can be described as:
 ![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "Kalkulasi_as_least_squares.png")
