@@ -8,12 +8,12 @@ The MPC formula derivation can be described as (I'm using Jan Maciejowski's Pred
 ![MPC derivation](Penurunan.png "Penurunan.png")
 
 # The implementations
-The implementations of the MPC control calculation are consist of three main implementations, each of the implementation is self contained and outputted same control output. The differences between them are in the robustness, the speed, and the readability of the control algorithm. I suggest you to read them all to understand the mathematics behind them.
+The implementations of the MPC control calculation are consist of three main implementations, each of the implementation is self contained and outputted same control output. The differences between them are in the readability, the speed, and the robustness of the control algorithm. I suggest you to read them all to understand the mathematics behind them.
 
-The implementations are (from the most easiest one to the one hardest to read):
-1. Naive Implementation (in mpc_engl folder).
-2. Optimized version of the Naive Implementation (in mpc_opt_engl).
-3. The numerically robust version (in mpc_least_square_engl).
+The implementations are (from the easiest to the hardest to understand):
+1. Naive Implementation (in mpc_engl folder). *Use this if you want to understand MPC (by reading the code) for the first time.*
+2. Optimized version of the Naive Implementation (in mpc_opt_engl). *Use this if you want the fastest implementation.*
+3. The numerically robust version (in mpc_least_square_engl). *Use this if you want the most robust implementation.*
 
 ## The first implementation description: The Naive Implementation
 The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as:
@@ -58,8 +58,8 @@ The code is tested on compiler Arduino IDE 1.8.10 and hardware Teensy 4.0 Platfo
 To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1) (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4.
 
 The computation time needed to compute one iteration `MPC::bUpdate(SP, X, U)` are (*drum-roll*):
-1. Naive Implementation (in mpc_engl folder): **187 us** to compute one iteration (single precision math) or **312 us** (double precision).
-2. Optimized version of the Naive Implementation (in mpc_opt_engl): **31 us** to compute one iteration (single precision math) or **59 us** (double precision).
+1. Naive implementation (in mpc_engl folder): **187 us** to compute one iteration (single precision math) or **312 us** (double precision).
+2. Optimized version of the naive implementation (in mpc_opt_engl): **31 us** to compute one iteration (single precision math) or **59 us** (double precision).
 3. The numerically robust version (in mpc_least_square_engl): **101 us** to compute one iteration (single precision math) or **184 us** (double precision).
 
 
@@ -74,6 +74,8 @@ Or if you don't want to install Scilab, you can use Arduino's Serial Plotter (wi
 
 # Closing remark
 
-Maybe in the future I'll implement support for constrained MPC using Quadratic Programming solver (or even Mixed Integer QuadProg!). In the meantime, it will be nice if you can test & validate my result or inform me if there are some bugs you encounter along the way!
+Maybe in the future I'll implement support for constrained MPC using Quadratic Programming solver (or even Mixed Integer QuadProg!). In the meantime, it will be nice if you can test & validate my result or inform me if there are some bugs you encounter along the way! (or if you notice some grammar error in the documentation).
+
+The matrix.h library's code documentation is still in Indonesian, I plant to translate it into English soon (stay tuned!).
 
 I published the code under CC0 license, effectively placed the code on public domain. But it will be great if you can tell me if you use the code, for what/why. That means a lot to me and give me motivation to expand the work (⌒▽⌒)
