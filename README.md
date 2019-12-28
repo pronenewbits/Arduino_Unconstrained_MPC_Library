@@ -3,6 +3,7 @@ This is a compact (unconstrained) Model Predictive Control (MPC) library for Tee
 - It's not using Eigen (small source code).
 - It's not using C++ Standard Library/std (for real time consideration).
 - If you choose `#define SISTEM_IMPLEMENTASI  SISTEM_EMBEDDED_NO_PRINT` in `konfig.h`, the code is platform agnostic (not using any library beside C header file: `stdlib.h`, `stdint.h`, and `math.h`).
+- There's no malloc/new/free dynamic memory allocation (but using heavy stack local variables, so you need to run it through static memory analyzer if you are really concern about hard real time application).
 
 # The Background
 I believe the concept and mathematics of (linear) MPC should be attainable from the undergraduate control system engineering student's level of education. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation.
