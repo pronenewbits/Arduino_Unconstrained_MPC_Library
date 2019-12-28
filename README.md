@@ -29,8 +29,8 @@ Note that the `H` matrix and (some of calculation inside) `G` matrix are actuall
 
 ## The second implementation description: Optimized version of the Naive Implementation
 The optimized version is exploiting 2 facts of The Naive Implementation:
-1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the `2 * THETA' * Q * THETA` portion) are actually constant.
-2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * THETA' * Q * THETA) * E(k)`. And actually we don't need all row of the matrix `1/2 * H^-1 * (2 * THETA' * Q * THETA)` (because we only interested on the first M-th row to calculate `du(k)`).
+1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the `2 * THETA' * Q` portion) are actually constant.
+2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * THETA' * Q) * E(k)`. And actually we don't need all row of the (constant) matrix `[1/2 * H^-1 * (2 * THETA' * Q)]` (because we only interested on the first M-th row to calculate `du(k)`).
 
 So we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as (the source code can be found in "[mpc_opt_engl](mpc_opt_engl)" folder):
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Click to maximize if the image rescaling make you dizzy")
