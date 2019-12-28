@@ -1,8 +1,7 @@
 # Arduino_MPC_Library
 This is a compact (unconstrained) Model Predictive Control (MPC) library for Teensy4.0/Arduino system (or real time embedded system in general).
-
-- It's not using Eigen.
-- It's not using C++ Standard Library (std).
+- It's not using Eigen (small source code).
+- It's not using C++ Standard Library/std (for real time consideration).
 - If you choose `#define SISTEM_IMPLEMENTASI  SISTEM_EMBEDDED_NO_PRINT` in `konfig.h`, the code is platform agnostic (not using any library beside C header file: `stdlib.h`, `stdint.h`, and `math.h`).
 
 # The Background
