@@ -43,7 +43,7 @@ We need to change the inversion operation using mathematically equivalent operat
 This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the bigger condition number of a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number). We can avoid the `((CTHETA') * Q * CTHETA)` by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation).
 
 The MPC algorithm then can be described as (the source code can be found in "[mpc_least_square_engl](mpc_least_square_engl)"):
-![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Click to maximize if the image rescaling make you dizzy")
+![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "Click to maximize if the image rescaling make you dizzy")
 (I'm using householder transformation to calculate the QR decomposition).
 
 
