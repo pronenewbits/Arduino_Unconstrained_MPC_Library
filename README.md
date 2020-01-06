@@ -54,13 +54,13 @@ The system configuration can be customized in `konfig.h`, where you can play aro
 
 The MPC code itself is self contained and spread over just 4 files (`mpc.cpp, mpc.h, matrix.h, konfig.h`), so you shouldn't have difficulty at understanding the code. You just need to construct the MPC class, initialize it with function `MPC::vReInit(A, B, C, weightQ, weightR)` (where the `A, B, C` is the LTI matrix and the `weightQ, weightR` is the diagonal value of the MPC weight matrix Q and R) and call the function `MPC::bUpdate(SP, X, U)` at every sampling time to calculate the control value `U(k)`.
 
+&nbsp;
+
 *For Arduino configuration (`#define SISTEM_IMPLEMENTASI     SISTEM_EMBEDDED_ARDUINO` in `konfig.h`):
 The code is tested on compiler Arduino IDE 1.8.10 and hardware Teensy 4.0 Platform.
 
 *For PC configuration (`#define SISTEM_IMPLEMENTASI     SISTEM_PC` in `konfig.h`):
 The code is tested on compiler Qt Creator 4.8.2 and hardware typical PC Platform.
-
-&nbsp;
 
 **Important note: For Teensy 4.0, I encounter RAM limitation where the `MATRIX_MAXIMUM_SIZE` can't be more than 28 (if you are using double precision) or 40 (if using single precision). If you already set more than that, your Teensy might be unable to be programmed (a bug in the Teensy bootloader?). The solution is simply to change the `MATRIX_MAXIMUM_SIZE` to be less than that, compile & upload the code from the compiler (the IDE then will protest that it cannot find the Teensy board), and click the program button on the Teensy board to force the bootloader to restart and download the firmware from the computer.**
 
