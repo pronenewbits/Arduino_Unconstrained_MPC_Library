@@ -42,7 +42,7 @@ We need to change the inversion operation using mathematically equivalent operat
 2. The `THETA` matrix is often ill conditioned, so the `((CTHETA') * Q * CTHETA)` calculation is bad.
 This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the bigger condition number of a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number).
 
-We can avoid both problem by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation):
+We can avoid both issues by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation):
 ![MPC Numerically robust formulation](Penurunan_Least_Squares.png "Click to maximize if the image rescaling make you dizzy")
 
 The MPC algorithm then can be described as (the source code can be found in "[mpc_least_square_engl](mpc_least_square_engl)"):
@@ -70,7 +70,6 @@ The code is tested on compiler Qt Creator 4.8.2 and hardware typical PC Platform
 
 
 # Some Benchmark
-
 To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1), where the configuration is (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4. The compiler is Arduino IDE 1.8.10 with default setting (compiler optimization setting: faster) and the hardware is Teensy 4.0.
 
 The computation time needed to compute one iteration of `MPC::bUpdate(SP, X, U)` function are (*drum-roll*):
@@ -91,10 +90,9 @@ Or if you don't want to install Scilab, you can use Arduino's Serial Plotter (wi
 
 
 # Closing Remark
-
 Maybe in the future I'll implement support for constrained MPC using Quadratic Programming solver (or even Mixed Integer QuadProg!). In the meantime, it will be nice if you can test & validate my result or inform me if there are some bugs you encounter along the way! (or if you notice some grammar error in the documentation).
 
-The matrix.h library's code documentation is still in Indonesian, and I plan to translate it into English soon (stay tuned!).
+The matrix.h library's code documentation is still in Indonesian, but I plan to translate it into English soon (stay tuned!).
 
 I published the code under CC0 license, effectively placed the code on public domain. But it will be great if you can tell me if you use the code, for what/why. That means a lot to me and give me motivation to expand the work (⌒▽⌒)
 
