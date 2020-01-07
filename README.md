@@ -40,7 +40,10 @@ From the numerical analysis point of view, the first & second implementation is 
 1. Inverting the `H` matrix (using Gauss-Jordan like in above implementation) is bad.
 We need to change the inversion operation using mathematically equivalent operation (I use QR decomposition here).
 2. The `THETA` matrix is often ill conditioned, so the `((CTHETA') * Q * CTHETA)` calculation is bad.
-This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the bigger condition number of a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number). We can avoid the `((CTHETA') * Q * CTHETA)` by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation).
+This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the bigger condition number of a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number).
+
+We can avoid both problem by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation):
+![MPC Numerically robust formulation](Penurunan_Least_Squares.png "Click to maximize if the image rescaling make you dizzy")
 
 The MPC algorithm then can be described as (the source code can be found in "[mpc_least_square_engl](mpc_least_square_engl)"):
 ![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "Click to maximize if the image rescaling make you dizzy")
