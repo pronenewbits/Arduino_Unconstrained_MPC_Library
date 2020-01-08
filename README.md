@@ -29,8 +29,8 @@ Note that the `H` matrix and (some of calculation inside) `G` matrix are actuall
 
 ## The second implementation description: Optimized version of the Naive Implementation
 The optimized version is exploiting 2 facts of The Naive Implementation:
-1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the `2 * THETA' * Q` portion) are actually constant.
-2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * THETA' * Q) * E(k)`. And actually we don't need all row of the (constant) matrix `[1/2 * H^-1 * (2 * THETA' * Q)]` (because we only interested on the first M-th row to calculate `du(k)`).
+1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the `2 * CTHETA' * Q` portion) are actually constant.
+2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * CTHETA' * Q) * E(k)`. And actually we don't need all row of the (constant) matrix `[1/2 * H^-1 * (2 * CTHETA' * Q)]` (because we only interested on the first M-th row to calculate `du(k)`).
 
 So we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as (the source code can be found in "[mpc_opt_engl](mpc_opt_engl)" folder):
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Click to maximize if the image rescaling make you dizzy")
@@ -38,8 +38,8 @@ So we can move the optimization matrix constant into initialization stage and tr
 ## The third implementation description: The Numerically Robust Version
 From the numerical analysis point of view, the first & second implementation is bad because of 2 facts:
 1. Inverting the `H` matrix (using Gauss-Jordan like in above implementation) is bad.
-We need to change the inversion operation using mathematically equivalent operation (I use QR decomposition here).
-2. The `THETA` matrix is often ill conditioned, so the `((CTHETA') * Q * CTHETA)` calculation is bad.
+We need to change the inversion operation using mathematically equivalent operation.
+2. The `THETA` matrix is often ill conditioned, so the `(CTHETA' * Q * CTHETA)` calculation is bad.
 This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the bigger condition number of a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number).
 
 We can avoid both issues by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation):
@@ -48,6 +48,8 @@ We can avoid both issues by reformulate the optimal control problem as a least-s
 The MPC algorithm then can be described as (the source code can be found in "[mpc_least_square_engl](mpc_least_square_engl)"):
 ![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "Click to maximize if the image rescaling make you dizzy")
 (I'm using householder transformation to calculate the QR decomposition).
+
+**Some notes for this implementation**: If you set `Hp > Hu`, the linear equation of (MPC_3) above will yield sistem that is [overdetermined](https://en.wikipedia.org/wiki/Overdetermined_system). And because of that, the solution of (MPC_3) equation can be solved by [normal equation](https://en.wikipedia.org/wiki/Overdetermined_system#Approximate_solutions) (bad) or [QR Decomposition](https://math.stackexchange.com/questions/3185239/solving-overdetermined-system-by-qr-decomposition) (good). Also the added bonus is we can truncate the `Q` & `R` matrix to lower the computation cost [(see here for more info)](https://en.wikipedia.org/wiki/QR_decomposition#Using_for_solution_to_linear_inverse_problems).
 
 
 # How to Use
