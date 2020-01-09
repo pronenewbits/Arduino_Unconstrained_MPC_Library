@@ -58,7 +58,7 @@
  *              E(k) = SP(k) - CPSI*x(k) - COMEGA*u(k-1)                                ...{MPC_6}
  *
  *      Calculate the optimal control solution:
- *              dU(k)_optimal = XI_FULL * E(k)                                          ...{MPC_7}
+ *              dU(k)_optimal = XI_DU * E(k)                                            ...{MPC_7}
  *
  *      Integrate the du(k) to get u(k):
  *              u(k) = u(k-1) + du(k)                                                   ...{MPC_8}
@@ -205,7 +205,7 @@ bool MPC::bUpdate(Matrix &SP, Matrix &X, Matrix &U)
     /*  E(k) = SP(k) - CPSI*x(k) - COMEGA*u(k-1)                                        ...{MPC_6} */
     Err = SP - CPSI*X - COMEGA*U;
     
-    /*  dU(k)_optimal = XI_FULL * E(k)                                                  ...{MPC_7}
+    /*  dU(k)_optimal = XI_DU * E(k)                                                    ...{MPC_7}
      * 
      * Note: If XI_DU initialization is failed in vReInit(), the DU_Out is 
      * always zero (U(k) won't change)
