@@ -3,13 +3,13 @@
  *
  *  The plant to be controlled is a Linear Time-Invariant System:
  *          x(k+1)  = A*x(k) + B*u(k)   ; x = Nx1, u = Mx1
- *          y(k)    = C*x(k)            ; y = Zx1
+ *          z(k)    = C*x(k)            ; z = Zx1
  *
  *
- ** Calculate prediction of X(k+1..k+Hp) constants ************************************************
+ ** Calculate prediction of x(k+1..k+Hp) constants ************************************************
  *
  *      Prediction of state variable of the system:
- *        X(k+1..k+Hp) = PSI*x(k) + OMEGA*u(k-1) + THETA*dU(k..k+Hu-1)                  ...{MPC_1}
+ *        x(k+1..k+Hp) = PSI*x(k) + OMEGA*u(k-1) + THETA*dU(k..k+Hu-1)                  ...{MPC_1}
  *
  *        Constants:
  *          PSI   = [A A^2 ... A^Hp]'                                         : (Hp*N)xN
@@ -21,10 +21,10 @@
  *                  [Sigma(i=0->Hp-1)(A^i*B)  .  ....  Sigma(i=0->Hp-Hu)A^i*B]
  *
  *
- ** Calculate prediction of Y(k+1..k+Hp) constants ************************************************
+ ** Calculate prediction of z(k+1..k+Hp) constants ************************************************
  *
  *      Prediction of output of the system:
- *        Y(k+1..k+Hp) = (Cz*PSI)*x(k) + (Cz*OMEGA)*u(k-1) + (Cz*THETA)*dU(k..k+Hu-1)   ...{MPC_2}
+ *        z(k+1..k+Hp) = (Cz*PSI)*x(k) + (Cz*OMEGA)*u(k-1) + (Cz*THETA)*dU(k..k+Hu-1)   ...{MPC_2}
  *
  *        Constants:
  *          Cz      : [C 0 0 .. 0]    ; 0 = zero(ZxN)       : (Hp*Z)x(Hp*N)
@@ -68,6 +68,8 @@
  *          x(k)  = State Variables at time-k               : N x 1
  *          u(k)  = Input plant at time-k                   : M x 1
  * 
+ * 
+ * See https://github.com/pronenewbits for more!
  *************************************************************************************************/
 #include "mpc.h"
 
@@ -84,13 +86,11 @@ void MPC::vReInit(Matrix &A, Matrix &B, Matrix &C, float_prec _bobotQ, float_pre
     this->C = C;
     Q.vIsiDiagonal(_bobotQ);
     R.vIsiDiagonal(_bobotR);
-    SQ.vIsiDiagonal(sqrt(_bobotQ));
-    SR.vIsiDiagonal(sqrt(_bobotR));
     
-    /*  Calculate prediction of X(k+1..k+Hp) constants
+    /*  Calculate prediction of x(k+1..k+Hp) constants
      *
      *      Prediction of state variable of the system:
-     *        X(k+1..k+Hp) = PSI*x(k) + OMEGA*u(k-1) + THETA*dU(k..k+Hu-1)                  ...{MPC_1}
+     *        x(k+1..k+Hp) = PSI*x(k) + OMEGA*u(k-1) + THETA*dU(k..k+Hu-1)                  ...{MPC_1}
      *
      *        Constants:
      *          PSI   = [A A^2 ... A^Hp]'                                         : (Hp*N)xN
@@ -148,10 +148,10 @@ void MPC::vReInit(Matrix &A, Matrix &B, Matrix &C, float_prec _bobotQ, float_pre
     
     
     
-    /* Calculate prediction of Y(k+1..k+Hp) constants
+    /* Calculate prediction of z(k+1..k+Hp) constants
      *
      *      Prediction of output of the system:
-     *        Y(k+1..k+Hp) = (Cz*PSI)*x(k) + (Cz*OMEGA)*u(k-1) + (Cz*THETA)*dU(k..k+Hu-1)   ...{MPC_2}
+     *        z(k+1..k+Hp) = (Cz*PSI)*x(k) + (Cz*OMEGA)*u(k-1) + (Cz*THETA)*dU(k..k+Hu-1)   ...{MPC_2}
      *
      *        Constants:
      *          Cz      : [C 0 0 .. 0]    ; 0 = zero(ZxN)       : (Hp*Z)x(Hp*N)
@@ -198,25 +198,23 @@ void MPC::vReInit(Matrix &A, Matrix &B, Matrix &C, float_prec _bobotQ, float_pre
     XI_DU = XI_DU.InsertSubMatrix(XI, 0, 0, 0, 0, SS_U_LEN, (MPC_HP_LEN*SS_Z_LEN));
 }
 
-bool MPC::bUpdate(Matrix &SP, Matrix &X, Matrix &U)
+bool MPC::bUpdate(Matrix &SP, Matrix &x, Matrix &u)
 {
     Matrix Err((MPC_HP_LEN*SS_Z_LEN), 1);
     
     /*  E(k) = SP(k) - CPSI*x(k) - COMEGA*u(k-1)                                        ...{MPC_6} */
-    Err = SP - CPSI*X - COMEGA*U;
+    Err = SP - CPSI*x - COMEGA*u;
     
     /*  dU(k)_optimal = XI_DU * E(k)                                                    ...{MPC_7}
      * 
      * Note: If XI_DU initialization is failed in vReInit(), the DU_Out is 
-     * always zero (U(k) won't change)
+     * always zero (u(k) won't change)
      */
     Matrix DU_Out(SS_U_LEN, 1);
     DU_Out = XI_DU * Err;
     
     /*  u(k) = u(k-1) + du(k)                                                           ...{MPC_8} */
-    U = U + DU_Out;
+    u = u + DU_Out;
     
     return true;
 }
-
-

@@ -12,6 +12,17 @@
  *       (optimasi lebih lanjut bisa dilakukan untuk mengurangi penggunaan memori).
  * 
  * Class Matrix Versioning:
+ *    v0.4 (2020-01-10), {PNb}:
+ *      - Tambahkan rounding to zero sebelum operasi sqrt(x) untuk menghindari
+ *          kasus x = 0-
+ *      - Fungsi QRDec mengembalikan Q' dan R (user perlu melakukan transpose
+ *          lagi setelah memanggil QRDec untuk mendapatkan Q).
+ *      - Menambahkan pengecekan hasil HouseholderTransformQR di dalam QRDec.
+ *      - Tambah warning jika MATRIX_PAKAI_BOUND_CHECKING dinonaktifkan.
+ * 
+ *    v0.3_engl (2019-12-31), {PNb}:
+ *      - Modifikasi dokumentasi kode buat orang asing.
+ * 
  *    v0.3 (2019-12-25), {PNb}:
  *      - Menambahkan fungsi back subtitution untuk menyelesaikan permasalahan 
  *          persamaan linear Ax = B. Dengan A matrix segitiga atas & B vektor.
@@ -39,6 +50,7 @@
  *          - Invers
  *          - Cetak
  * 
+ * See https://github.com/pronenewbits for more!
  *************************************************************************************/
 
 
@@ -47,12 +59,12 @@
 
 #include "konfig.h"
 
-#if (SISTEM_IMPLEMENTASI == SISTEM_PC)
+#if (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_PC)
     #include <iostream>
     #include <iomanip>      // std::setprecision
 
     using namespace std;
-#elif (SISTEM_IMPLEMENTASI == SISTEM_EMBEDDED_ARDUINO)
+#elif (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_EMBEDDED_ARDUINO)
     #include <Wire.h>
 #endif
 
@@ -94,17 +106,19 @@ public:
          * (I know this is so dirty, but it makes the code so FABULOUS :D)
          */
         float_prec & operator[](int32_t _kolom) {
-            #if defined(MATRIX_PAKAI_BOUND_CHECKING)
+            #if (defined(MATRIX_PAKAI_BOUND_CHECKING))
                 if (_kolom >= this->_maxKolom) {
-                    #if (SISTEM_IMPLEMENTASI == SISTEM_PC)
+                    #if (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_PC)
                         cout << "Matrix index out-of-bounds (kolom: " << _kolom << ")"<< endl;
-                    #elif (SISTEM_IMPLEMENTASI == SISTEM_EMBEDDED_ARDUINO)
+                    #elif (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_EMBEDDED_ARDUINO)
                         Serial.println("Matrix index out-of-bounds kolom");
                     #else
                         /* Silent function */
                     #endif
                     while(1);
                 }
+            #else
+                #warning("Matrix bounds checking is disabled... good luck >:3");
             #endif
             return _array[_kolom];
         }
@@ -113,17 +127,19 @@ public:
         int32_t _maxKolom;
     };
     Proxy operator[](int32_t _baris) {
-        #if defined(MATRIX_PAKAI_BOUND_CHECKING)
+        #if (defined(MATRIX_PAKAI_BOUND_CHECKING))
             if (_baris >= this->i32baris) {
-                #if (SISTEM_IMPLEMENTASI == SISTEM_PC)
+                #if (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_PC)
                     cout << "Matrix index out-of-bounds (baris: " << _baris << ")"<< endl;
-                #elif (SISTEM_IMPLEMENTASI == SISTEM_EMBEDDED_ARDUINO)
+                #elif (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_EMBEDDED_ARDUINO)
                     Serial.println("Matrix index out-of-bounds baris");
                 #else
                     /* Silent function */
                 #endif
                 while(1);
             }
+        #else
+            #warning("Matrix bounds checking is disabled... good luck >:3");
         #endif
         return Proxy(f32data[_baris], this->i32kolom);      /* Parsing data kolom untuk bound checking */
     }
@@ -404,8 +420,13 @@ public:
                 _normM = _normM + ((*this)[_i][_j] * (*this)[_i][_j]);
             }
         }
+        
         if (_normM < float_prec(float_prec_ZERO)) {
             return false;
+        }
+        /* Rounding to zero untuk menghindari kasus sqrt(0-) */
+        if (fabs(_normM) < float_prec(float_prec_ZERO)) {
+            _normM = 0.0;
         }
         _normM = sqrt(_normM);
         for (int32_t _i = 0; _i < this->i32baris; _i++) {
@@ -549,6 +570,10 @@ public:
                         _outp.i32kolom = -1;
                         return _outp;
                     }
+                    /* Rounding to zero untuk menghindari kasus sqrt(0-) */
+                    if (fabs(_tempFloat) < float_prec(float_prec_ZERO)) {
+                        _tempFloat = 0.0;
+                    }
                     _outp[_i][_i] = sqrt(_tempFloat);
                 } else {
                     for (int32_t _k = 0; _k < _j; _k++) {
@@ -643,27 +668,42 @@ public:
      *      Melakukan operasi Dekomposisi QR pada matrix A dengan menggunakan fungsi
      *          MatrixOp_HouseholderTransform.
      *                      A = Q*R
+     * 
+     * PERHATIAN: Matrix yang dihasilkan dari perhitungan yang menggunakan Householder Transformation 
+     *            adalah Q' dan R. Dikarenakan QR decomposition seringkali digunakan untuk menyelesaikan
+     *            persamaan least-squares (membutuhkan Q'), Q' tidak ditranspose di dalam fungsi ini.
+     * 
+     * NOTE contoh penggunaan QRDec untuk permasalahan least-squares:
+     *                      Ax = b
+     *                   (QR)x = b
+     *                      Rx = Q'b    --> selanjutnya dilakukan back-subtitution untuk menyelesaikan x
      */
-    bool QRDec(Matrix &Q, Matrix &R)
+    bool QRDec(Matrix &Qt, Matrix &R)
     {
-        Matrix Qn(Q.i32baris, Q.i32kolom);
-        if ((this->i32baris < this->i32kolom) || (!Q.bCekMatrixPersegi()) || (Q.i32baris != this->i32baris) || (R.i32baris != this->i32baris) || (R.i32kolom != this->i32kolom)) {
-            Q.i32baris = -1;
-            Q.i32kolom = -1;
+        Matrix Qn(Qt.i32baris, Qt.i32kolom);
+        if ((this->i32baris < this->i32kolom) || (!Qt.bCekMatrixPersegi()) || (Qt.i32baris != this->i32baris) || (R.i32baris != this->i32baris) || (R.i32kolom != this->i32kolom)) {
+            Qt.i32baris = -1;
+            Qt.i32kolom = -1;
             R.i32baris = -1;
             R.i32kolom = -1;
             return false;
         }
         R = (*this);
-        Q.vSetIdentitas();
+        Qt.vSetIdentitas();
         for (int32_t _i = 0; (_i < (this->i32baris - 1)) && (_i < this->i32kolom-1); _i++) {
             Qn  = R.HouseholderTransformQR(_i, _i);
-            Q   = Qn * Q;
-            R   = Qn * R;
+            if (!Qn.bCekMatrixValid()) {
+                Qt.i32baris = -1;
+                Qt.i32kolom = -1;
+                R.i32baris = -1;
+                R.i32kolom = -1;
+                return false;
+            }
+            Qt = Qn * Qt;
+            R  = Qn * R;
         }
-        Q.RoundingMatrixToZero();
-        R.RoundingMatrixToZero();
-        Q = Q.Transpose();
+        Qt.RoundingMatrixToZero();
+        /* R.RoundingMatrixToZero(); */
         return true;
     }
 
@@ -701,6 +741,8 @@ public:
 
     /* Melakukan operasi back-subtitution pada matrix triangular A & matrix kolom B.
      *                      Ax = B
+     * 
+     * x = BackSubtitution(&A, &B);
      *
      *  Untuk menghemat komputansi, matrix A tidak dilakukan pengecekan triangular
      * (diasumsikan sudah upper-triangular).
@@ -730,7 +772,7 @@ public:
         return _outp;
     }
 
-#if (SISTEM_IMPLEMENTASI == SISTEM_PC)
+#if (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_PC)
     void vCetak() {
         for (int32_t _i = 0; _i < this->i32baris; _i++) {
             cout << "[ ";
@@ -753,7 +795,7 @@ public:
         }
         cout << endl;
     }
-#elif (SISTEM_IMPLEMENTASI == SISTEM_EMBEDDED_ARDUINO)
+#elif (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_EMBEDDED_ARDUINO)
     void vCetak() {
         char _bufSer[10];
         for (int32_t _i = 0; _i < this->i32baris; _i++) {

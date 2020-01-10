@@ -1,3 +1,9 @@
+/**************************************************************************************************
+ * Class for MPC without constraint.
+ * 
+ * 
+ * See https://github.com/pronenewbits for more!
+ *************************************************************************************************/
 #ifndef MPC_H
 #define MPC_H
 
@@ -8,7 +14,7 @@
 #if (MPC_HP_LEN < MPC_HU_LEN)
     #error("The MPC_HP_LEN must be more than or equal MPC_HU_LEN!");
 #endif
-#if (((MPC_HP_LEN*SS_Z_LEN) > MATRIX_MAXIMUM_SIZE) || ((MPC_HP_LEN*SS_X_LEN) > MATRIX_MAXIMUM_SIZE) || ((MPC_HU_LEN*SS_U_LEN) > MATRIX_MAXIMUM_SIZE))
+#if (((MPC_HP_LEN*SS_Z_LEN) > MATRIX_MAXIMUM_SIZE) || ((MPC_HP_LEN*SS_X_LEN) > MATRIX_MAXIMUM_SIZE) || ((MPC_HU_LEN*SS_U_LEN) > MATRIX_MAXIMUM_SIZE) || ((MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN) > MATRIX_MAXIMUM_SIZE))
     #error("The MATRIX_MAXIMUM_SIZE is too small to do MPC calculation!");
 #endif
 
@@ -17,7 +23,7 @@ class MPC
 public:
     MPC(Matrix &A, Matrix &B, Matrix &C, float_prec _bobotQ, float_prec _bobotR);
     void vReInit(Matrix &A, Matrix &B, Matrix &C, float_prec _bobotQ, float_prec _bobotR);
-    bool bUpdate(Matrix &SP, Matrix &X, Matrix &U);
+    bool bUpdate(Matrix &SP, Matrix &x, Matrix &u);
 
 protected:
     void bCalculateActiveSet(void);
@@ -36,8 +42,8 @@ private:
     Matrix SQ       {(MPC_HP_LEN*SS_Z_LEN), (MPC_HP_LEN*SS_Z_LEN)};
     Matrix SR       {(MPC_HU_LEN*SS_U_LEN), (MPC_HU_LEN*SS_U_LEN)};
     
-    Matrix LS_Q     {(MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN), (MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN)};
-    Matrix LS_R     {(MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN), MPC_HP_LEN*SS_Z_LEN};
+    Matrix Qt_L     {(MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN), (MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN)};
+    Matrix R_L      {(MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN), MPC_HP_LEN*SS_Z_LEN};
 };
 
 

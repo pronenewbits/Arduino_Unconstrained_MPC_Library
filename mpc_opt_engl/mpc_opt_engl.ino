@@ -15,9 +15,9 @@ Matrix A(SS_X_LEN, SS_X_LEN);
 Matrix B(SS_X_LEN, SS_U_LEN);
 Matrix C(SS_Z_LEN, SS_X_LEN);
 Matrix SP((MPC_HP_LEN*SS_Z_LEN), 1);
-Matrix X(SS_X_LEN, 1);
-Matrix U(SS_U_LEN, 1);
-Matrix Z(SS_Z_LEN, 1);
+Matrix x(SS_X_LEN, 1);
+Matrix u(SS_U_LEN, 1);
+Matrix z(SS_Z_LEN, 1);
 
 int32_t i32iterSP = 0;
 MPC MPC_HIL(A, B, C, 1, 0.001);
@@ -88,7 +88,7 @@ void loop() {
         /* ===================================== MPC Update ==================================== */
         u64compuTime = micros();
         
-        MPC_HIL.bUpdate(SP, X, U);
+        MPC_HIL.bUpdate(SP, x, u);
         
         u64compuTime = (micros() - u64compuTime);        
         /* ------------------------------------- MPC Update ------------------------------------ */
@@ -96,19 +96,19 @@ void loop() {
         
         
         /* ================================= Plant Simulation ================================== */
-        X = A*X + B*U;
-        Z = C*X;
+        x = A*x + B*u;
+        z = C*x;
         /* --------------------------------- Plant Simulation ---------------------------------- */
         
         
         
         /* =========================== Print to serial (for plotting) ========================== */
         #if (1)
-            /* Print: Computation time, Set-Point, Z */
-            snprintf(bufferTxSer, sizeof(bufferTxSer)-1, "%.3f %.3f %.3f %.3f %.3f", ((float)u64compuTime)/1000., SP[0][0], SP[1][0], Z[0][0], Z[1][0]);
+            /* Print: Computation time, Set-Point, z */
+            snprintf(bufferTxSer, sizeof(bufferTxSer)-1, "%.3f %.3f %.3f %.3f %.3f", ((float)u64compuTime)/1000., SP[0][0], SP[1][0], z[0][0], z[1][0]);
         #else
-            /* Print: Computation time, Set-Point, Z, U */
-            snprintf(bufferTxSer, sizeof(bufferTxSer)-1, "%.3f %.3f %.3f %.3f %.3f %.3f %.3f", ((float)u64compuTime)/1000., SP[0][0], SP[1][0], Z[0][0], Z[1][0], U[0][0], U[1][0]);
+            /* Print: Computation time, Set-Point, z, u */
+            snprintf(bufferTxSer, sizeof(bufferTxSer)-1, "%.3f %.3f %.3f %.3f %.3f %.3f %.3f", ((float)u64compuTime)/1000., SP[0][0], SP[1][0], z[0][0], z[1][0], u[0][0], u[1][0]);
         #endif
         Serial.print(bufferTxSer);
         Serial.print('\n');

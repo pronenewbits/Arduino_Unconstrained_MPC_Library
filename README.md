@@ -2,7 +2,7 @@
 This is a compact (unconstrained) Model Predictive Control (MPC) library for Teensy4.0/Arduino system (or real time embedded system in general).
 - It's not using Eigen (small source code - more simple to understand).
 - It's not using C++ Standard Library/std (for embedded consideration).
-- If you set `SISTEM_IMPLEMENTASI` to `SISTEM_EMBEDDED_NO_PRINT` in `konfig.h`, the code is platform agnostic (not using any library beside these C header files: `stdlib.h`, `stdint.h`, and `math.h`).
+- If you set `SYSTEM_IMPLEMENTATION` to `SYSTEM_IMPLEMENTATION_EMBEDDED_NO_PRINT` in `konfig.h`, the code is platform agnostic (not using any library beside these C header files: `stdlib.h`, `stdint.h`, and `math.h`).
 - There's no malloc/new/free dynamic memory allocation for real time application (but using heavy stack local variables, so you need to run it through static memory analyzer if you are really concerned about implement this in mission critical hard real time application).
 
 # The Background
@@ -25,7 +25,7 @@ The MPC code are spread over just 4 files (`mpc.cpp, mpc.h, matrix.h, konfig.h`)
 The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as (the source code can be found in "[mpc_engl](mpc_engl)" folder):
 ![MPC Naive algorithm](Kalkulasi.png "Click to maximize if the image rescaling make you dizzy")
 
-Note that the `H` matrix and (some of calculation inside) `G` matrix are actually constant. So we should be able to move them into Initialization step (just calculate once).
+Note that the `H` matrix and (some of calculation inside) `G` matrix are actually constant. So we should be able to move them into initialization step (just need to calculate once).
 
 ## The second implementation description: Optimized version of the Naive Implementation
 The optimized version is exploiting 2 facts of The Naive Implementation:
@@ -49,32 +49,32 @@ The MPC algorithm then can be described as (the source code can be found in "[mp
 ![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "Click to maximize if the image rescaling make you dizzy")
 (I'm using householder transformation to calculate the QR decomposition).
 
-**Some notes for this implementation**: If you set `Hp > Hu`, the linear equation of (MPC_3) above will yield sistem that is [overdetermined](https://en.wikipedia.org/wiki/Overdetermined_system). And because of that, the solution of (MPC_3) equation can be solved by [normal equation](https://en.wikipedia.org/wiki/Overdetermined_system#Approximate_solutions) (bad) or [QR Decomposition](https://math.stackexchange.com/questions/3185239/solving-overdetermined-system-by-qr-decomposition) (good). Also the added bonus is we can truncate the `Q` & `R` matrix to lower the computation cost [(see here for more info)](https://en.wikipedia.org/wiki/QR_decomposition#Using_for_solution_to_linear_inverse_problems).
+**Some notes for this implementation**: If you set `Hp > Hu`, the linear equation of (MPC_3) above will yield sistem that is [overdetermined](https://en.wikipedia.org/wiki/Overdetermined_system). The (MPC_3) equation then can be solved with [normal equation](https://en.wikipedia.org/wiki/Overdetermined_system#Approximate_solutions) (bad) or [QR Decomposition](https://math.stackexchange.com/questions/3185239/solving-overdetermined-system-by-qr-decomposition) (good). Also the added bonus is we can truncate the `Q` & `R` matrix to lower the computation cost [(see here for more info)](https://en.wikipedia.org/wiki/QR_decomposition#Using_for_solution_to_linear_inverse_problems).
 
 
 # How to Use
 Just place one of the implementation folder ("[mpc\_engl](mpc_engl)", "[mpc_opt_engl](mpc_opt_engl)", or "[mpc_least_square_engl](mpc_least_square_engl)") in your Arduino installation folder and run with it! Don't forget to turn on Arduino Plotter for real-time plotting.
 
-The system configuration can be customized in `konfig.h`, where you can play around with parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)`, the length of `X, U, Z vector`, etc. The example to use the code and the LTI system definition can be read at mpc*.ino file.
+The system configuration can be customized in `konfig.h`, where you can play around with parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)`, the length of `x, u, z vector`, etc. The example to use the code and the LTI system definition can be read at mpc*.ino file.
 
-The MPC code itself is self contained and spread over just 4 files (`mpc.cpp, mpc.h, matrix.h, konfig.h`), so you shouldn't have difficulty at understanding the code. You just need to construct the MPC class, initialize it with function `MPC::vReInit(A, B, C, weightQ, weightR)` (where the `A, B, C` is the LTI matrix and the `weightQ, weightR` is the diagonal value of the MPC weight matrix Q and R) and call the function `MPC::bUpdate(SP, X, U)` at every sampling time to calculate the control value `U(k)`.
+The MPC code itself is self contained and spread over just 4 files (`mpc.cpp, mpc.h, matrix.h, konfig.h`), so you shouldn't have difficulty at understanding the code. You just need to construct the MPC class, initialize it with function `MPC::vReInit(A, B, C, weightQ, weightR)` (where the `A, B, C` is the LTI matrix and the `weightQ, weightR` is the diagonal value of the MPC weight matrix Q and R) and call the function `MPC::bUpdate(SP, x, u)` at every sampling time to calculate the control value `u(k)`.
 
 &nbsp;
 
-*For Arduino configuration (`#define SISTEM_IMPLEMENTASI     SISTEM_EMBEDDED_ARDUINO` in `konfig.h`):
+*For Arduino configuration (`SYSTEM_IMPLEMENTATION` is set to `SYSTEM_IMPLEMENTATION_EMBEDDED_ARDUINO` in `konfig.h`):
 The code is tested on compiler Arduino IDE 1.8.10 and hardware Teensy 4.0 Platform.
 
-*For PC configuration (`#define SISTEM_IMPLEMENTASI     SISTEM_PC` in `konfig.h`):
-The code is tested on compiler Qt Creator 4.8.2 and hardware typical PC Platform.
+*For PC configuration (`SYSTEM_IMPLEMENTATION` is set to `SYSTEM_IMPLEMENTATION_PC` in `konfig.h`):
+The code is tested on compiler Qt Creator 4.8.2 and typical PC Platform.
 
-**Important note: For Teensy 4.0, I encounter RAM limitation where the `MATRIX_MAXIMUM_SIZE` can't be more than 28 (if you are using double precision) or 40 (if using single precision). If you already set more than that, your Teensy might be unable to be programmed (a bug in the Teensy bootloader?). The solution is simply to change the `MATRIX_MAXIMUM_SIZE` to be less than that, compile & upload the code from the compiler (the IDE then will protest that it cannot find the Teensy board), and click the program button on the Teensy board to force the bootloader to restart and download the firmware from the computer.**
+**Important note: For Teensy 4.0, I encounter RAM limitation where the `MATRIX_MAXIMUM_SIZE` can't be more than 28 (if you are using double precision) or 40 (if using single precision). If you already set more than that, your Teensy might be unable to be programmed (stack overflow make the bootloader program goes awry?). The solution is simply to change the `MATRIX_MAXIMUM_SIZE` to be less than that, compile & upload the code from the compiler. The IDE then will protest that it cannot find the Teensy board. DON'T PANIC. Click the program button on the Teensy board to force the bootloader to restart and download the firmware from the computer.**
 
 
 
 # Some Benchmark
 To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1), where the configuration is (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4. The compiler is Arduino IDE 1.8.10 with default setting (compiler optimization setting: faster) and the hardware is Teensy 4.0.
 
-The computation time needed to compute one iteration of `MPC::bUpdate(SP, X, U)` function are (*drum-roll*):
+The computation time needed to compute one iteration of `MPC::bUpdate(SP, x, u)` function are (*drum-roll*):
 1. Naive implementation (in "[mpc_engl](mpc_engl)" folder): **187 us** to compute one iteration (single precision math) or **312 us** (double precision).
 2. Optimized version of the naive implementation (in "[mpc_opt_engl](mpc_opt_engl)"): **31 us** to compute one iteration (single precision math) or **59 us** (double precision).
 3. The numerically robust version (in "[mpc_least_square_engl](mpc_least_square_engl)"): **101 us** to compute one iteration (single precision math) or **184 us** (double precision).
@@ -97,6 +97,4 @@ Maybe in the future I'll implement support for constrained MPC using Quadratic P
 The matrix.h library's code documentation is still in Indonesian, but I plan to translate it into English soon (stay tuned!).
 
 I published the code under CC0 license, effectively placed the code on public domain. But it will be great if you can tell me if you use the code, for what/why. That means a lot to me and give me motivation to expand the work (⌒▽⌒)
-
-*This tutorial is adopted from Reddit post: https://reddit.com/r/ControlTheory/comments/efikg6/unconstrained_mpc_library_for_arduino_and_some/*
 
