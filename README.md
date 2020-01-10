@@ -28,7 +28,7 @@ The Naive Implementation algorithm is just a direct implementation of the MPC de
 Note that the `H` matrix and (some of calculation inside) `G` matrix are actually constant. So we should be able to move them into initialization step (just need to calculate once).
 
 ## The second implementation description: Optimized version of the Naive Implementation
-The optimized version is exploiting 2 facts of The Naive Implementation:
+The optimized version is exploiting [2 facts](https://reddit.com/r/ControlTheory/comments/efikg6/unconstrained_mpc_library_for_arduino_and_some/fc2bp2v/) of The Naive Implementation:
 1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the `2 * CTHETA' * Q` portion) are actually constant.
 2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * CTHETA' * Q) * E(k)`. And actually we don't need all row of the (constant) matrix `[1/2 * H^-1 * (2 * CTHETA' * Q)]` (because we only interested on the first M-th row to calculate `du(k)`).
 
