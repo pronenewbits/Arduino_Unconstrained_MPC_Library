@@ -219,7 +219,6 @@ bool MPC::bUpdate(Matrix &SP, Matrix &x, Matrix &u)
          * 
          * NOTE: We only need the first (Hp*Z)-th columns of Qt_L to construct the 
          *          right hand equation (encapsulated in Qt_LSQE variable).
-         * 
          */
         Matrix Q1((MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN), MPC_HP_LEN*SS_Z_LEN);
         Q1 = Q1.InsertSubMatrix(Qt_L, 0, 0, 0, 0, (MPC_HP_LEN*SS_Z_LEN + MPC_HU_LEN*SS_U_LEN), MPC_HP_LEN*SS_Z_LEN);
