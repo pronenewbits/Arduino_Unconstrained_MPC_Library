@@ -1,11 +1,11 @@
-# Arduino_MPC_Library
+# Arduino_Unconstrained_MPC_Library
 This is a compact Unconstrained (linear) Model Predictive Control (MPC) library for Teensy4.0/Arduino system (or real time embedded system in general).
 - It's not using Eigen (small source code - more simple to understand).
 - It's not using C++ Standard Library/std (for embedded consideration).
 - If you set `SYSTEM_IMPLEMENTATION` to `SYSTEM_IMPLEMENTATION_EMBEDDED_NO_PRINT` in `konfig.h`, the code is platform agnostic (not using any library beside these C header files: `stdlib.h`, `stdint.h`, and `math.h`).
 - There's no malloc/new/free dynamic memory allocation for real time application (but using heavy stack local variables, so you need to run it through static memory analyzer if you are really concerned about implement this in mission critical hard real time application).
 
-The constrained MPC version can be found in [my other repository](pronenewbits/Arduino_Constrained_MPC_Library).
+The constrained MPC version can be found in [my other repository](https://github.com/pronenewbits/Arduino_Constrained_MPC_Library/).
 
 # The Background
 I believe the concept and mathematics of (linear) MPC should be attainable with the undergraduate control system engineering student's level of mathematical sophistication. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation (the code is computed in **~100 us**! See *Some Benchmark* section below).
