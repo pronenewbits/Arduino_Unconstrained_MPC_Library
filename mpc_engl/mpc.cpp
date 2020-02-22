@@ -51,7 +51,7 @@
  *                 dU(k)
  *
  *              --> dU_opt(k) = ActiveSet(2H, -G, ineqLHS, ineqRHS)                     ...{MPC_5b}
- *              --> https://github.com/pronenewbits/Arduino_Unconstrained_MPC_Library
+ *              --> https://github.com/pronenewbits/Arduino_Constrained_MPC_Library
  *
  *      Integrate the du(k) to get u(k):
  *              u(k) = u(k-1) + du(k)                                                   ...{MPC_6}
