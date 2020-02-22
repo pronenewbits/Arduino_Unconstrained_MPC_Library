@@ -6,39 +6,22 @@
  *          z(k)    = C*x(k)            ; z = Zx1
  *
  *
- ** Calculate prediction of x(k+1..k+Hp) constants ************************************************
- *
- *      Prediction of state variable of the system:
- *        x(k+1..k+Hp) = PSI*x(k) + OMEGA*u(k-1) + THETA*dU(k..k+Hu-1)                  ...{MPC_1}
- *
- *        Constants:
- *          PSI   = [A A^2 ... A^Hp]'                                         : (Hp*N)xN
- *          OMEGA = [B B+A*B ... Sigma(i=0->Hp-1)A^i*B]'                      : (Hp*N)xM
- *          THETA = [         B               0  ....           0            ]
- *                  [       B+A*B             B   .             0            ]
- *                  [         .               .    .            B            ]: (Hp*N)x(Hu*M)
- *                  [         .               .     .           .            ]
- *                  [Sigma(i=0->Hp-1)(A^i*B)  .  ....  Sigma(i=0->Hp-Hu)A^i*B]
- *
- *
  ** Calculate prediction of z(k+1..k+Hp) constants ************************************************
  *
- *      Prediction of output of the system:
- *        z(k+1..k+Hp) = (Cz*PSI)*x(k) + (Cz*OMEGA)*u(k-1) + (Cz*THETA)*dU(k..k+Hu-1)   ...{MPC_2}
+ *      Prediction of state variable of the system:
+ *        z(k+1..k+Hp) = (CPSI)*x(k) + (COMEGA)*u(k-1) + (CTHETA)*dU(k..k+Hu-1)         ...{MPC_1}
  *
  *        Constants:
- *          Cz      : [C 0 0 .. 0]    ; 0 = zero(ZxN)       : (Hp*Z)x(Hp*N)
- *                    [0 C 0 .. 0]
- *                    [0 0 C .. 0]
- *                    [. . . .. 0]
- *                    [0 0 0 .. C]
- *
- *          CPSI   = Cz*PSI                                 : (Hp*Z)xN
- *          COMEGA = Cz*OMEGA                               : (Hp*Z)xM
- *          CTHETA = Cz*THETA                               : (Hp*Z)x(Hu*M)
+ *          CPSI   = [CA C(A^2) ... C(A^Hp)]'                                       : (Hp*N)xN
+ *          COMEGA = [CB C(B+A*B) ... C*Sigma(i=0->Hp-1)A^i*B]'                     : (Hp*N)xM
+ *          CTHETA = [         CB                0  ....           0              ]
+ *                   [       C(B+A*B)           CB   .             0              ]
+ *                   [           .               .    .           CB              ] : (Hp*N)x(Hu*M)
+ *                   [           .               .     .           .              ]
+ *                   [C*Sigma(i=0->Hp-1)(A^i*B)  .  ....  C*Sigma(i=0->Hp-Hu)A^i*B]
  *
  *
- ** Calculate offline optimization constants ******************************************************
+ ** MPC update algorithm **************************************************************************
  * 
  *      Recreate the optimal control problem solution:
  *          [(SQ * CTHETA)] * dU(k)_optimal = [(SQ*E(k)]
@@ -46,7 +29,7 @@
  * 
  *          GammaLeft * dU(k)_optimal = GammaRight
  * 
- *          Q_L * R_L = GammaLeft                                                       ...{MPC_3}
+ *          Q_L * R_L = GammaLeft                                                       ...{MPC_2}
  * 
  *        Constants:
  *          SQ    = Square root of Weight matrix for set-point deviation    : Hp x Hp
@@ -58,17 +41,17 @@
  ** MPC update algorithm **************************************************************************
  *
  *      Formulation of plant error prediction
- *          E(k) = SP(k) - CPSI*x(k) - COMEGA*u(k-1)                                    ...{MPC_4}
+ *          E(k) = SP(k) - CPSI*x(k) - COMEGA*u(k-1)                                    ...{MPC_3}
  *
  *      Construct the optimal control solution equation:
- *          R_L * dU(k)_optimal = Qt_L * [(SQ*E(k)]                                     ...{MPC_5}
+ *          R_L * dU(k)_optimal = Qt_L * [(SQ*E(k)]                                     ...{MPC_4}
  *                                       [    0   ]
  *              
  *      Calculate the optimal control solution using back-subtitution:
- *          R_L * dU(k)_optimal = BackSubRight                                          ...{MPC_6}
+ *          R_L * dU(k)_optimal = BackSubRight                                          ...{MPC_5}
  *
  *      Integrate the du(k) to get u(k):
- *          u(k) = u(k-1) + du(k)                                                       ...{MPC_7}
+ *          u(k) = u(k-1) + du(k)                                                       ...{MPC_6}
  *
  *        Variables:
  *          SP(k) = Set Point vector at time-k              : (Hp*N) x 1
@@ -91,94 +74,63 @@ void MPC::vReInit(Matrix &A, Matrix &B, Matrix &C, float_prec _bobotQ, float_pre
     this->A = A;
     this->B = B;
     this->C = C;
-    SQ.vIsiDiagonal(sqrt(_bobotQ));
-    SR.vIsiDiagonal(sqrt(_bobotR));
+    SQ.vSetDiag(sqrt(_bobotQ));
+    SR.vSetDiag(sqrt(_bobotR));
     
-    /*  Calculate prediction of x(k+1..k+Hp) constants
+    /*  Calculate prediction of z(k+1..k+Hp) constants
      *
      *      Prediction of state variable of the system:
-     *        x(k+1..k+Hp) = PSI*x(k) + OMEGA*u(k-1) + THETA*dU(k..k+Hu-1)                  ...{MPC_1}
+     *        z(k+1..k+Hp) = (CPSI)*x(k) + (COMEGA)*u(k-1) + (CTHETA)*dU(k..k+Hu-1)         ...{MPC_1}
      *
      *        Constants:
-     *          PSI   = [A A^2 ... A^Hp]'                                         : (Hp*N)xN
-     *          OMEGA = [B B+A*B ... Sigma(i=0->Hp-1)A^i*B]'                      : (Hp*N)xM
-     *          THETA = [         B               0  ....           0            ]
-     *                  [       B+A*B             B   .             0            ]
-     *                  [         .               .    .            B            ]: (Hp*N)x(Hu*M)
-     *                  [         .               .     .           .            ]
-     *                  [Sigma(i=0->Hp-1)(A^i*B)  .  ....  Sigma(i=0->Hp-Hu)A^i*B]
+     *          CPSI   = [CA C(A^2) ... C(A^Hp)]'                                       : (Hp*N)xN
+     *          COMEGA = [CB C(B+A*B) ... C*Sigma(i=0->Hp-1)A^i*B]'                     : (Hp*N)xM
+     *          CTHETA = [         CB                0  ....           0              ]
+     *                   [       C(B+A*B)           CB   .             0              ]
+     *                   [           .               .    .           CB              ] : (Hp*N)x(Hu*M)
+     *                   [           .               .     .           .              ]
+     *                   [C*Sigma(i=0->Hp-1)(A^i*B)  .  ....  C*Sigma(i=0->Hp-Hu)A^i*B]
      *
      */
-    Matrix _PSI     ((MPC_HP_LEN*SS_X_LEN), SS_X_LEN);
-    Matrix _OMEGA   ((MPC_HP_LEN*SS_X_LEN), SS_U_LEN);
-    Matrix _THETA   ((MPC_HP_LEN*SS_X_LEN), (MPC_HU_LEN*SS_U_LEN));
-    
     Matrix _Apow(SS_X_LEN, SS_X_LEN);
-    /* PSI      : [  A  ]
-     *            [ A^2 ]
-     *            [  .  ]                                                   : (Hp*N) x N
-     *            [  .  ]
-     *            [A^Hp ]
+    /* CPSI     : [ C *   A  ]
+     *            [ C *  A^2 ]
+     *            [     .    ]                                                   : (Hp*N) x N
+     *            [     .    ]
+     *            [ C * A^Hp ]
      */
     _Apow = A;
     for (int32_t _i = 0; _i < MPC_HP_LEN; _i++) {
-        _PSI = _PSI.InsertSubMatrix(_Apow, _i*SS_X_LEN, 0);
+        CPSI = CPSI.InsertSubMatrix((C*_Apow), _i*SS_Z_LEN, 0);
         _Apow = _Apow * A;
     }
     
-    /* OMEGA    : [          B          ]
-     *            [        B+A*B        ]
-     *            [          .          ]                                   : (Hp*N) x M
-     *            [          .          ]
-     *            [Sigma(i=0->Hp-1)A^i*B]
+    /* COMEGA   : [          C * (B)         ]
+     *            [        C * (B+A*B)       ]
+     *            [             .            ]                                   : (Hp*N) x M
+     *            [             .            ]
+     *            [ C * Sigma(i=0->Hp-1)A^i*B]
      */
     Matrix _tempSigma(SS_X_LEN, SS_U_LEN);
-    _Apow.vSetIdentitas();
+    _Apow.vSetIdentity();
     _tempSigma = B;
     for (int32_t _i = 0; _i < MPC_HP_LEN; _i++) {
-        _OMEGA = _OMEGA.InsertSubMatrix(_tempSigma, _i*SS_X_LEN, 0);
+        COMEGA = COMEGA.InsertSubMatrix((C*_tempSigma), _i*SS_Z_LEN, 0);
         _Apow = _Apow * A;
         _tempSigma = _tempSigma + (_Apow*B);
     }
     
-    /* THETA    : [         B               0  ....           0            ]
-     *            [       B+A*B             B   .             0            ]
-     *            [         .               .    .            B            ]: (Hp*N)x(Hu*M)
-     *            [         .               .     .           .            ]
-     *            [Sigma(i=0->Hp-1)A^i*B    .  ....  Sigma(i=0->Hp-Hu)A^i*B]
+    /* CTHETA   : [          C * (B)              0         ....              0             ]
+     *            [       C * (B+A*B)           C * (B)      .                0             ]
+     *            [            .                  .           .             C * (B)         ]: (Hp*N)x(Hu*M)
+     *            [            .                  .            .              .             ]
+     *            [C * Sigma(i=0->Hp-1)A^i*B      .         ....  C * Sigma(i=0->Hp-Hu)A^i*B]
      *
-     *          : [OMEGA   [0 OMEGA(0:(len(OMEGA)-len(B)),:)]'  ....  [0..0 OMEGA(0:(len(OMEGA)-((Hp-Hu)*len(B))),:)]']
+     *          : [COMEGA   [0 COMEGA(0:(len(COMEGA)-len(B)),:)]'  ....  [0..0 COMEGA(0:(len(COMEGA)-((Hp-Hu)*len(B))),:)]']
      */
     for (int32_t _i = 0; _i < MPC_HU_LEN; _i++) {
-        _THETA = _THETA.InsertSubMatrix(_OMEGA, _i*SS_X_LEN, _i*SS_U_LEN, (MPC_HP_LEN*SS_X_LEN)-(_i*SS_X_LEN), SS_U_LEN);
+        CTHETA = CTHETA.InsertSubMatrix(COMEGA, _i*SS_Z_LEN, _i*SS_U_LEN, (MPC_HP_LEN*SS_Z_LEN)-(_i*SS_Z_LEN), SS_U_LEN);
     }
-    
-    
-    
-    /* Calculate prediction of z(k+1..k+Hp) constants
-     *
-     *      Prediction of output of the system:
-     *        z(k+1..k+Hp) = (Cz*PSI)*x(k) + (Cz*OMEGA)*u(k-1) + (Cz*THETA)*dU(k..k+Hu-1)   ...{MPC_2}
-     *
-     *        Constants:
-     *          Cz      : [C 0 0 .. 0]    ; 0 = zero(ZxN)       : (Hp*Z)x(Hp*N)
-     *                    [0 C 0 .. 0]
-     *                    [0 0 C .. 0]
-     *                    [. . . .. 0]
-     *                    [0 0 0 .. C]
-     *
-     *          CPSI   = Cz*PSI                                 : (Hp*Z)xN
-     *          COMEGA = Cz*OMEGA                               : (Hp*Z)xM
-     *          CTHETA = Cz*THETA                               : (Hp*Z)x(Hu*M)
-     */
-    Matrix Cz(MPC_HP_LEN*SS_Z_LEN, MPC_HP_LEN*SS_X_LEN);
-    for (int32_t _i = 0; _i < MPC_HP_LEN; _i++) {
-        Cz = Cz.InsertSubMatrix(C, _i*SS_Z_LEN, _i*SS_X_LEN);
-    }
-    CPSI    = Cz * _PSI;
-    COMEGA  = Cz * _OMEGA;
-    CTHETA  = Cz * _THETA;
-    
     
     
     /* Calculate offline optimization constants
@@ -189,7 +141,7 @@ void MPC::vReInit(Matrix &A, Matrix &B, Matrix &C, float_prec _bobotQ, float_pre
      * 
      *          GammaLeft * dU(k)_optimal = GammaRight
      * 
-     *          Q_L * R_L = GammaLeft                                                       ...{MPC_3}
+     *          Q_L * R_L = GammaLeft                                                       ...{MPC_2}
      * 
      * NOTE: QRDec function return the transpose of Q (i.e. Q').
      */
@@ -203,18 +155,18 @@ bool MPC::bUpdate(Matrix &SP, Matrix &x, Matrix &u)
 {
     Matrix Err((MPC_HP_LEN*SS_Z_LEN), 1);
     
-    /*  E(k) = SP(k) - CPSI*x(k) - COMEGA*u(k-1)                                            ...{MPC_4} */
+    /*  E(k) = SP(k) - CPSI*x(k) - COMEGA*u(k-1)                                            ...{MPC_3} */
     Err = SP - CPSI*x - COMEGA*u;
     
 
-    if (!Qt_L.bCekMatrixValid()) {
+    if (!Qt_L.bMatrixIsValid()) {
         /* The QR Decomposition in the initialization step has failed, return false */
-        DU.vIsiNol();
+        DU.vSetToZero();
         
         return false;
     } else {
         /*      Construct the optimal control solution equation:
-         *          R_L * dU(k)_optimal = Qt_L * [(SQ*E(k)]                                     ...{MPC_5}
+         *          R_L * dU(k)_optimal = Qt_L * [(SQ*E(k)]                                 ...{MPC_4}
          *                                       [    0   ]
          * 
          * NOTE: We only need the first (Hp*Z)-th columns of Qt_L to construct the 
@@ -235,13 +187,13 @@ bool MPC::bUpdate(Matrix &SP, Matrix &x, Matrix &u)
         
         
         /*      Calculate the optimal control solution using back-subtitution:
-         *          R_L * dU(k)_optimal = BackSubRight                                          ...{MPC_6}
+         *          R_L * dU(k)_optimal = BackSubRight                                      ...{MPC_5}
          */
         DU = R1.BackSubtitution(R1, BackSubRight);
     }
 
     /*      Integrate the du(k) to get u(k):
-     *          u(k) = u(k-1) + du(k)                                                       ...{MPC_7}
+     *          u(k) = u(k-1) + du(k)                                                       ...{MPC_6}
      */
     Matrix DU_Out(SS_U_LEN, 1);
     for (int32_t _i = 0; _i < SS_U_LEN; _i++) {

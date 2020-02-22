@@ -8,7 +8,7 @@ This is a compact Unconstrained (linear) Model Predictive Control (MPC) library 
 The constrained MPC version can be found in [my other repository](https://github.com/pronenewbits/Arduino_Constrained_MPC_Library/).
 
 # The Background
-I believe the concept and mathematics of (linear) MPC should be attainable with the undergraduate control system engineering student's level of mathematical sophistication. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation (the code is computed in **~100 us**! See *Some Benchmark* section below).
+I believe the concept and mathematics of (linear) MPC should be attainable with the undergraduate control system engineering student's level of mathematical sophistication. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation (the code is computed in **40 - 200 us**! See *Some Benchmark* section below).
 
 The MPC formula derivation can be described as (I'm using Jan Maciejowski's *Predictive Control with Constraints* as reference, great book btw) :
 ![MPC derivation](Penurunan.png "Click to maximize if the image rescaling make you dizzy")
@@ -21,7 +21,7 @@ The implementations are (from the simplest to the most advanced):
 2. Optimized version of the Naive Implementation ([mpc_opt_engl](mpc_opt_engl)). **Use this if you want the fastest implementation.**
 3. The numerically robust version ([mpc_least_square_engl](mpc_least_square_engl)). **Use this if you want the most robust implementation.**
 
-The MPC code are spread over just 4 files (`mpc.cpp, mpc.h, matrix.h, konfig.h`) - read *How to Use* section below for more explanation.
+The MPC code are spread over just 5 files (`matrix.h, matrix.cpp, mpc.h, mpc.cpp, konfig.h`) - read *How to Use* section below for more explanation.
 
 ## The first implementation description: The Naive Implementation
 The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as (the source code can be found in "[mpc_engl](mpc_engl)" folder):
@@ -31,8 +31,8 @@ Note that the `H` matrix and (some of calculation inside) `G` matrix are actuall
 
 ## The second implementation description: Optimized version of the Naive Implementation
 The optimized version is exploiting 2 facts of The Naive Implementation ([thanks to AlphaSquid_ for pointing this out](https://reddit.com/r/ControlTheory/comments/efikg6/unconstrained_mpc_library_for_arduino_and_some/fc2bp2v/)):
-1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the `2 * CTHETA' * Q` portion) are actually constant.
-2. The equation `du(k) = 1/2 * H^-1 * G` can be described as `du(k) = 1/2 * H^-1 * (2 * CTHETA' * Q) * E(k)`. And actually we don't need all row of the (constant) matrix `[1/2 * H^-1 * (2 * CTHETA' * Q)]` (because we only interested on the first M-th row to calculate `du(k)`).
+1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the <img src="eq_render/2cthetatrQ.gif" align="middle"> portion) are actually constant.
+2. The equation <img src="eq_render/duk=0.5hinvg.gif" align="middle"/> can be described as <img src="eq_render/duk=0.5hinv2cthetatrqQek=hinvcthetatrqQek.gif" align="middle"/>. And actually we don't need all row of the (constant) matrix <img src="eq_render/hinvcthetatrqQ.gif"/> (because we only interested on the first M-th row to calculate `du(k)`).
 
 So we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as (the source code can be found in "[mpc_opt_engl](mpc_opt_engl)" folder):
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Click to maximize if the image rescaling make you dizzy")
@@ -41,7 +41,7 @@ So we can move the optimization matrix constant into initialization stage and tr
 From the numerical analysis point of view, the first & second implementation is bad because of 2 facts:
 1. Inverting the `H` matrix (using Gauss-Jordan like in above implementation) is bad.
 We need to change the inversion operation using mathematically equivalent operation.
-2. The `THETA` matrix is often ill conditioned, so the `(CTHETA' * Q * CTHETA)` calculation is bad.
+2. The `THETA` matrix is often ill conditioned, so the <img src="eq_render/cthetatrQcheta.gif"/> calculation is bad.
 This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the bigger condition number of a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number).
 
 We can avoid both issues by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation):
@@ -55,11 +55,21 @@ The MPC algorithm then can be described as (the source code can be found in "[mp
 
 
 # How to Use
-Just place one of the implementation folder ("[mpc\_engl](mpc_engl)", "[mpc_opt_engl](mpc_opt_engl)", or "[mpc_least_square_engl](mpc_least_square_engl)") in your Arduino installation folder and run with it! Don't forget to turn on Arduino Plotter for real-time plotting.
+Just place one of the implementation folder ("[mpc\_engl](mpc_engl)", "[mpc_opt_engl](mpc_opt_engl)", or "[mpc_least_square_engl](mpc_least_square_engl)") in your Arduino installation folder and run with it! Inside each folder you will find these files:
+- `matrix.h/cpp` : The backbone of all my code in this account. This files contain the class for Matrix operation.
+- `mpc.h/cpp` : The source files of the MPC Class.
+- `konfig.h` : The configuration file.
+- `*.ino` : The arduino main file.
 
-The system configuration can be customized in `konfig.h`, where you can play around with parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)`, the length of `x, u, z vector`, etc. The example to use the code and the LTI system definition can be read at mpc*.ino file.
+For custom implementation, typically you only need to modify `konfig.h` and `*.ino` files. Where basically you need to:
+1. Set the length of `X, U, Z` vectors and sampling time `dt` in `konfig.h`, depend on your model.
+2. Set the MPC parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)` in `konfig.h`, depend on your application.
+3. Define the (linear) matrix system `A, B, C` and MPC initialization value `weightQ, weightR` in the `*.ino` file.
 
-The MPC code itself is self contained and spread over just 4 files (`mpc.cpp, mpc.h, matrix.h, konfig.h`), so you shouldn't have difficulty at understanding the code. You just need to construct the MPC class, initialize it with function `MPC::vReInit(A, B, C, weightQ, weightR)` (where the `A, B, C` is the LTI matrix and the `weightQ, weightR` is the diagonal value of the MPC weight matrix Q and R) and call the function `MPC::bUpdate(SP, x, u)` at every sampling time to calculate the control value `u(k)`.
+After that, you only need to initialize the MPC class, set the non-zero initialization matrix by calling `MPC::vReInit(A, B, C, weightQ, weightR)` function at initialization, and call the function `MPC::bUpdate(SP, x, u)` at every sampling time to calculate the control value `u(k)`.
+
+Don't forget to turn on Arduino Plotter for real-time plotting.
+
 
 &nbsp;
 
@@ -77,9 +87,9 @@ The code is tested on compiler Qt Creator 4.8.2 and typical PC Platform.
 To demonstrate the code, I've made the MPC control a state-space model (HIL style) for Jet Transport Aircraft (ref: https://www.mathworks.com/help/control/ug/mimo-state-space-models.html#buv3tp8-1), where the configuration is (4 state, 2 input, 2 output LTI system) + Hp=7 & Hu=4. The compiler is Arduino IDE 1.8.10 with default setting (compiler optimization setting: faster) and the hardware is Teensy 4.0.
 
 The computation time needed to compute one iteration of `MPC::bUpdate(SP, x, u)` function are (*drum-roll*):
-1. Naive implementation (in "[mpc_engl](mpc_engl)" folder): **187 us** to compute one iteration (single precision math) or **312 us** (double precision).
-2. Optimized version of the naive implementation (in "[mpc_opt_engl](mpc_opt_engl)"): **31 us** to compute one iteration (single precision math) or **59 us** (double precision).
-3. The numerically robust version (in "[mpc_least_square_engl](mpc_least_square_engl)"): **101 us** to compute one iteration (single precision math) or **184 us** (double precision).
+1. Naive implementation (in "[mpc_engl](mpc_engl)" folder): **245 us** to compute one iteration (single precision math) or **408 us** (double precision).
+2. Optimized version of the naive implementation (in "[mpc_opt_engl](mpc_opt_engl)"): **37 us** to compute one iteration (single precision math) or **65 us** (double precision).
+3. The numerically robust version (in "[mpc_least_square_engl](mpc_least_square_engl)"): **195 us** to compute one iteration (single precision math) or **339 us** (double precision).
 
 (Teensy 4.0 is wicked fast!)
 
@@ -94,7 +104,6 @@ Or if you don't want to install Scilab, you can use Arduino's Serial Plotter (wi
 
 
 # Closing Remark
-The matrix.h library's code documentation is still in Indonesian, but I plan to translate it into English soon (stay tuned!). In the meantime, it will be nice if you can test & validate my result or inform me if there are some bugs you encounter along the way! (or if you notice some grammar error in the documentation).
+It will be nice if you can test & validate my result or inform me if there are some bugs you encounter along the way! (or if you notice some grammar error in the documentation).
 
 I published the code under CC0 license, effectively placed the code on public domain. But it will be great if you can tell me if you use the code, for what/why. That means a lot to me and give me motivation to expand the work (⌒▽⌒)
-

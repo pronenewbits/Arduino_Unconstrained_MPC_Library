@@ -119,3 +119,16 @@ void loop() {
     }
 }
 
+
+
+void SPEW_THE_ERROR(char const * str)
+{
+    #if (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_PC)
+        cout << (str) << endl;
+    #elif (SYSTEM_IMPLEMENTATION == SYSTEM_IMPLEMENTATION_EMBEDDED_ARDUINO)
+        Serial.println(str);
+    #else
+        /* Silent function */
+    #endif
+    while(1);
+}
