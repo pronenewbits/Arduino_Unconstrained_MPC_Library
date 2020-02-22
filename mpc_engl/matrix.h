@@ -14,7 +14,7 @@
  *       definition for more information!
  * 
  * Class Matrix Versioning:
- *    v0.7 (2020-02-22), {PNb}:
+ *    v0.7 (2020-02-23), {PNb}:
  *      - Make the matrix class interface in English (at long last, yay?).
  * 
  *
@@ -159,7 +159,7 @@ public:
         #else
             #warning("Matrix bounds checking is disabled... good luck >:3");
         #endif
-        return Proxy(f32data[_row], this->i32col);      /* Parsing data kolom untuk bound checking */
+        return Proxy(f32data[_row], this->i32col);      /* Parsing column index for bound checking */
     }
 
     bool operator == (Matrix _compare) {
@@ -429,7 +429,7 @@ public:
         return _outp;
     }
     
-    /* Normalize the matrix */
+    /* Normalize the vector */
     bool bNormVector() {
         float_prec _normM = 0.0;
         for (int32_t _i = 0; _i < this->i32row; _i++) {
@@ -441,7 +441,7 @@ public:
         if (_normM < float_prec(float_prec_ZERO)) {
             return false;
         }
-        /* Rounding to zero to avoid kasus sqrt(0-) */
+        /* Rounding to zero to avoid case where sqrt(0-) */
         if (fabs(_normM) < float_prec(float_prec_ZERO)) {
             _normM = 0.0;
         }
@@ -548,7 +548,7 @@ public:
 
     /* Do the Cholesky Decomposition using Cholesky-Crout algorithm.
      * 
-     *      A = L*L'     ; A = riil matrix, positif definit, and symmetry MxM matrix
+     *      A = L*L'     ; A = real, positive definite, and symmetry MxM matrix
      *
      *      L = A.CholeskyDec();
      *
@@ -557,7 +557,8 @@ public:
      *          component of _A. Then it is assumed the upper triangular is inherently 
      *          equal to the lower end.
      *          (as a side note, Scilab & MATLAB is using Lapack routines DPOTRF that process
-     *           the upper triangular of _A. The result should be equal mathematically).
+     *           the upper triangular of _A. The result should be equal mathematically if A 
+     *           is symmetry).
      */
     Matrix CholeskyDec()
     {
@@ -581,7 +582,7 @@ public:
                         _outp.vSetMatrixInvalid();
                         return _outp;
                     }
-                    /* Rounding to zero to avoid kasus sqrt(0-) */
+                    /* Rounding to zero to avoid case where sqrt(0-) */
                     if (fabs(_tempFloat) < float_prec(float_prec_ZERO)) {
                         _tempFloat = 0.0;
                     }
@@ -620,7 +621,7 @@ public:
             return _outp;
         }
 
-        /* Untill here:
+        /* Until here:
          *
          * _xLen    = ||x||            = sqrt(x1^2 + x2^2 + .. + xn^2)
          * _vLen2   = ||u||^2 - (u1^2) = x2^2 + .. + xn^2
@@ -651,7 +652,7 @@ public:
         _vectTemp[_rowTransform][0] = _u1;
 
         if (fabs(_vLen2) < float_prec(float_prec_ZERO)) {
-            /* vektor x sudah collinear dengan vektor basis e, kembalikan hasil = I */
+            /* x vector is collinear with basis vector e, return result = I */
             _outp.vSetIdentity();
         } else {
             /* P = -2*(u1*u1')/v_len2 + I */
@@ -738,6 +739,7 @@ public:
 //        }
 //        return _outp;
 //    }
+// Not yet tested, but should be working (?)
 
 
     /* Do the back-subtitution opeartion for upper triangular matrix A & column matrix B to solve x:
