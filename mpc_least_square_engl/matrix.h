@@ -1,5 +1,4 @@
 /************************************************************************************
- *
  * Matrix Class 
  *  Contain the matrix class definition and operation.
  *

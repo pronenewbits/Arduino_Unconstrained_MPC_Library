@@ -1,7 +1,6 @@
 /************************************************************************************
- *
  * Class Matrix
- *  Lihat ke matrix.h untuk deskripsi lebih lanjut
+ *  See matrix.h for description
  * 
  * See https://github.com/pronenewbits for more!
  *************************************************************************************/
