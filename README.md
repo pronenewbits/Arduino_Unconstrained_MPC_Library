@@ -32,7 +32,7 @@ Note that the `H` matrix and (some of calculation inside) `G` matrix are actuall
 ## The second implementation description: Optimized version of the Naive Implementation
 The optimized version is exploiting 2 facts of The Naive Implementation ([thanks to AlphaSquid_ for pointing this out](https://reddit.com/r/ControlTheory/comments/efikg6/unconstrained_mpc_library_for_arduino_and_some/fc2bp2v/)):
 1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the <img src="eq_render/2cthetatrQ.gif"  align="top"/> portion) are actually constant.
-2. The equation <img src="eq_render/duk=0.5hinvg.gif" align="middle"/> can be described as <img src="eq_render/duk=0.5hinv2cthetatrqQek=hinvcthetatrqQek.gif" align="middle"/>. And actually we don't need all row of the (constant) matrix <img src="eq_render/hinvcthetatrqQ.gif" align="top"/> (because we only interested on the first M-th row to calculate `du(k)`).
+2. The equation <img src="eq_render/duk=0.5hinvg.gif" align="middle"/> can be described as <img src="eq_render/duk=0.5hinv2cthetatrqQek=hinvcthetatrqQek.gif" align="middle"/>. And actually we don't need all row of the (constant) matrix <img src="eq_render/hinvcthetatrqQ.gif" align="top"/> (because we only need the first M-th row to calculate <img src="eq_render/duk.gif" align="top"/>).
 
 So we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as (the source code can be found in "[mpc_opt_engl](mpc_opt_engl)" folder):
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Click to maximize if the image rescaling make you dizzy")
@@ -41,7 +41,7 @@ So we can move the optimization matrix constant into initialization stage and tr
 From the numerical analysis point of view, the first & second implementation is bad because of 2 facts:
 1. Inverting the `H` matrix (using Gauss-Jordan like in above implementation) is bad.
 We need to change the inversion operation using mathematically equivalent operation.
-2. The `THETA` matrix is often ill conditioned, so the <img src="eq_render/cthetatrQcheta.gif" align="top"/> calculation is bad.
+2. The <img src="eq_render/thetac.gif" align="bottom"/> matrix is often ill conditioned, so the <img src="eq_render/cthetatrQcheta.gif" align="top"/> calculation is bad.
 This statement stem from the fact that [squaring matrix with itself will increase its condition number](https://math.stackexchange.com/questions/1351616/condition-number-of-ata), where [the bigger condition number of a matrix is, the more ill conditioned it is](https://en.wikipedia.org/wiki/Condition_number).
 
 We can avoid both issues by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation):
