@@ -3,15 +3,30 @@ This is a compact Unconstrained (linear) Model Predictive Control (MPC) library 
 - It's not using Eigen (small source code - more simple to understand).
 - It's not using C++ Standard Library/std (for embedded consideration).
 - If you set `SYSTEM_IMPLEMENTATION` to `SYSTEM_IMPLEMENTATION_EMBEDDED_NO_PRINT` in `konfig.h`, the code is platform agnostic (not using any library beside these C header files: `stdlib.h`, `stdint.h`, and `math.h`).
-- There's no malloc/new/free dynamic memory allocation for real time application (but using heavy stack local variables, so you need to run it through static memory analyzer if you are really concerned about implement this in mission critical hard real time application).
+- There's no malloc/new/free dynamic memory allocation (for real time application). But it use heavy stack local variables, so you need to run it through memory analyzer if you are really concerned about implement this in mission critical hard real time application.
 
 The constrained MPC version can be found in [my other repository](https://github.com/pronenewbits/Arduino_Constrained_MPC_Library/).
 
 # The Background
-I believe the concept and mathematics of (linear) MPC should be attainable with the undergraduate control system engineering student's level of mathematical sophistication. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation (the code is computed in **40 - 200 us**! See *Some Benchmark* section below).
+I believe the concept and mathematics of (linear) MPC should be attainable with undergraduate control system engineering student's level of mathematical sophistication. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation (the code is computed in **40 - 200 us**! See *Some Benchmark* section below).
 
-The MPC formula derivation can be described as (I'm using Jan Maciejowski's *Predictive Control with Constraints* as reference, great book btw) :
-![MPC derivation](Penurunan.png "Click to maximize if the image rescaling make you dizzy")
+First, The prediction of the system we want to control can be described as (I'm using Jan Maciejowski's *Predictive Control with Constraints* as reference, great book btw):
+![Prediction formulation](Formulation_of_Prediction_Variables.png "Click to maximize if the image rescaling make you dizzy")
+
+Remark: 
+1. `HP` is the Prediction Horizon (<img src="eq_render/hp_is_pos.gif" align="middle"/>). This constant determine how far ahead we'll predict the system's evolution.
+2. `Hu` is the Control Horizon (<img src="eq_render/hu_between_hp_and_pos.gif" align="middle"/>). This constant determine how far ahead we'll calculate the control action.
+3. As you can see on the last equation, the variable we'll calculate is <img src="eq_render/duk_hat_to_du_hp_hat.gif" align="top"/>. But actually we only need <img src="eq_render/duk_hat.gif" align="top"/> to calculate the control action <img src="eq_render/uk.gif" align="top"/>. So we'll calculate all control prediction, extract <img src="eq_render/duk_hat.gif" align="top"/>, and discard the rest.
+
+Then, we can described the optimal control formulation as:
+![Optimal control formulation](Formulation_of_Optimal_Control.png "Click to maximize if the image rescaling make you dizzy")
+
+Remark: 
+1. `SP(k)` is the reference value we want the system to track.
+2. `Q` constant is the penalty for tracking error, because we want the tracking error to be as small as possible.
+3. `R` constant is the penalty for big <img src="eq_render/du_hat.gif" align="bottom"/>, because sometimes we don't want <img src="eq_render/uk.gif" align="bottom"/> to change as much as possible (for example, if our controller have gear inside, we don't want the control action to change rapidly to reduce wear).
+4. We need the `Q` and `R` matrices to be positive-definite to ensure the optimal control formulation to be convex and have one global optimum (and also to ensure <img src="eq_render/h=cthetatrQctheta+r.gif" align="top"/> as nonzero and invertible). The simplest way to ensure that condition is to make `Q` and `R` matrices as diagonal matrix and set the diagonal entries with positive value.
+
 
 # The Implementations
 The implementations of the MPC control calculation consist of three main implementations, each of the implementation is self contained and calculate the same (control) output. The differences between them are in the readability, the speed, and the numerical robustness of the control algorithm. If you are still learning about MPC, I suggest you to read them all to understand the mathematics behind them.
@@ -62,8 +77,8 @@ Just place one of the implementation folder ("[mpc\_engl](mpc_engl)", "[mpc_opt_
 - `*.ino` : The arduino main file.
 
 For custom implementation, typically you only need to modify `konfig.h` and `*.ino` files. Where basically you need to:
-1. Set the length of `X, U, Z` vectors and sampling time `dt` in `konfig.h`, depend on your model.
-2. Set the MPC parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)` in `konfig.h`, depend on your application.
+1. Set the length of `X, U, Z` vectors and sampling time `dt` in `konfig.h`, depends on your model.
+2. Set the MPC parameters like `Hp (Prediction Horizon)` or `Hu (Control Horizon)` in `konfig.h`, depends on your application.
 3. Define the (linear) matrix system `A, B, C` and MPC initialization value `weightQ, weightR` in the `*.ino` file.
 
 After that, you only need to initialize the MPC class, set the non-zero initialization matrix by calling `MPC::vReInit(A, B, C, weightQ, weightR)` function at initialization, and call the function `MPC::bUpdate(SP, x, u)` at every sampling time to calculate the control value `u(k)`.
@@ -104,6 +119,6 @@ Or if you don't want to install Scilab, you can use Arduino's Serial Plotter (wi
 
 
 # Closing Remark
-It will be nice if you can test & validate my result or inform me if there are some bugs you encounter along the way! (or if you notice some grammar error in the documentation).
+I hope you can test & validate my result or inform me if there are some bugs you encounter along the way! (or if you notice some grammar error in the documentation).
 
-I published the code under CC0 license, effectively placed the code on public domain. But it will be great if you can tell me if you use the code, for what/why. That means a lot to me and give me motivation to expand the work (⌒▽⌒)
+I published the code under CC0 license, effectively placed the code on public domain. But it will be great if you can tell me if you use the code, for what/why. That means a lot to me and give me motivation to expand the work (￣▽￣)
