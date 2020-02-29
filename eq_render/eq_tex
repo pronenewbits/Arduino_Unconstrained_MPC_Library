@@ -1,4 +1,17 @@
 
+
+du_hat.gif                                          \Delta{\Hat{u}}
+
+hp_is_pos.gif                                       H_{p}>0
+
+hu_between_hp_and_pos.gif                           H_{p}\geq{H_{u}}>0
+
+duk_hat.gif                                         \Delta{\hat{u}(k|k)}
+
+duk_hat_to_du_hp_hat.gif                            [\Delta{\hat{u}(k|k)},...,\Delta{\hat{u}(k+H_{u}-1|k)}]^{T}
+
+h=cthetatrQctheta+r.gif                             H=\Theta_{c}^{T}Q\Theta_{c}+R
+
 2cthetatrQ.gif                                      2\Theta_{c}^{T}Q
 
 duk=0.5hinv2cthetatrqQek=hinvcthetatrqQek.gif       \Delta{U(k)}=\frac{1}{2}H^{-1}(2\Theta_{c}^{T}Q)E(k)=H^{-1}(\Theta_{c}^{T}Q)E(k)
@@ -8,3 +21,4 @@ duk=0.5hinvg.gif                                    \Delta{U(k)}=\frac{1}{2}H^{-
 hinvcthetatrqQ.gif                                  H^{-1}(\Theta_{c}^{T}Q)
 
 cthetatrQcheta.gif                                  \Theta_{c}^{T}Q\Theta_{c}
+
