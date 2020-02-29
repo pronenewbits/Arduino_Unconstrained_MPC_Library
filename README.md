@@ -5,7 +5,14 @@ This is a compact Unconstrained (linear) Model Predictive Control (MPC) library 
 - If you set `SYSTEM_IMPLEMENTATION` to `SYSTEM_IMPLEMENTATION_EMBEDDED_NO_PRINT` in `konfig.h`, the code is platform agnostic (not using any library beside these C header files: `stdlib.h`, `stdint.h`, and `math.h`).
 - There's no malloc/new/free dynamic memory allocation (for real time application). But it use heavy stack local variables, so you need to run it through memory analyzer if you are really concerned about implement this in mission critical hard real time application.
 
-The constrained MPC version can be found in [my other repository](https://github.com/pronenewbits/Arduino_Constrained_MPC_Library/).
+&nbsp;
+
+For the other versions:
+
+- The constrained MPC version (using quadratic programming) can be found in [this repository](https://github.com/pronenewbits/Arduino_Constrained_MPC_Library/).
+- The MPC with mixed-integer constraits (using branch and bound QP) version can be found in [this repository](https://github.com/pronenewbits/Embedded_Constrained_MI_MPC_Library/).
+
+**Note**: The constrained versions are built on top of the result obtained here, so be sure to read and understand this version before read the others.
 
 # The Background
 I believe the concept and mathematics of (linear) MPC should be attainable with undergraduate control system engineering student's level of mathematical sophistication. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation (the code is computed in **40 - 200 us**! See *Some Benchmark* section below).
@@ -17,6 +24,8 @@ Remark:
 1. `HP` is the Prediction Horizon (<img src="eq_render/hp_is_pos.gif" align="middle"/>). This constant determine how far ahead we'll predict the system's evolution.
 2. `Hu` is the Control Horizon (<img src="eq_render/hu_between_hp_and_pos.gif" align="middle"/>). This constant determine how far ahead we'll calculate the control action.
 3. As you can see on the last equation, the variable we'll calculate is <img src="eq_render/duk_hat_to_du_hp_hat.gif" align="top"/>. But actually we only need <img src="eq_render/duk_hat.gif" align="top"/> to calculate the control action <img src="eq_render/uk.gif" align="top"/>. So we'll calculate all control prediction, extract <img src="eq_render/duk_hat.gif" align="top"/>, and discard the rest.
+
+&nbsp;
 
 Then, we can described the optimal control formulation as:
 ![Optimal control formulation](Formulation_of_Optimal_Control.png "Click to maximize if the image rescaling make you dizzy")
