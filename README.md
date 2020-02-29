@@ -75,7 +75,7 @@ The MPC algorithm then can be described as (the source code can be found in "[mp
 ![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "Click to maximize if the image rescaling make you dizzy")
 (I'm using householder transformation to calculate the QR decomposition).
 
-**Some notes for this implementation**: If you set `Hp > Hu`, the linear equation of (MPC_3) above will yield sistem that is [overdetermined](https://en.wikipedia.org/wiki/Overdetermined_system). The (MPC_3) equation then can be solved with [normal equation](https://en.wikipedia.org/wiki/Overdetermined_system#Approximate_solutions) (bad) or [QR Decomposition](https://math.stackexchange.com/questions/3185239/solving-overdetermined-system-by-qr-decomposition) (good). Also the added bonus is we can truncate the `Q` & `R` matrix to lower the computation cost [(see here for more info)](https://en.wikipedia.org/wiki/QR_decomposition#Using_for_solution_to_linear_inverse_problems).
+**Some notes for this implementation**: If you set `Hp > Hu`, the linear equation of (MPC_2) above will yield sistem that is [overdetermined](https://en.wikipedia.org/wiki/Overdetermined_system). The (MPC_2) equation then can be solved with [normal equation](https://en.wikipedia.org/wiki/Overdetermined_system#Approximate_solutions) (bad) or [QR Decomposition](https://math.stackexchange.com/questions/3185239/solving-overdetermined-system-by-qr-decomposition) (good). Also the added bonus is we can truncate the `Q` & `R` matrix to lower the computation cost [(see here for more info)](https://en.wikipedia.org/wiki/QR_decomposition#Using_for_solution_to_linear_inverse_problems).
 
 
 # How to Use
