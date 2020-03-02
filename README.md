@@ -9,13 +9,13 @@ This is a compact Unconstrained (linear) Model Predictive Control (MPC) library 
 
 For the other versions:
 
-- The constrained MPC version (using quadratic programming) can be found in [this repository](https://github.com/pronenewbits/Arduino_Constrained_MPC_Library/).
-- The MPC with mixed-integer constraits (using branch and bound QP) version can be found in [this repository](https://github.com/pronenewbits/Embedded_Constrained_MI_MPC_Library/).
+- The MPC with continuous constraints (using quadratic programming) version can be found in [this repository](https://github.com/pronenewbits/Arduino_Constrained_MPC_Library/).
+- The MPC with mixed-integer constraints (using branch and bound QP / MIQP) version can be found in [this repository](https://github.com/pronenewbits/Embedded_Constrained_MI_MPC_Library/).
 
 **Note**: The constrained versions are built on top of the result obtained here, so be sure to read and understand this version before read the others.
 
 # The Background
-I believe the concept and mathematics of (linear) MPC should be attainable with undergraduate control system engineering student's level of mathematical sophistication. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation (the code is computed in **40 - 200 us**! See *Some Benchmark* section below).
+I believe the concept and mathematics of unconstrained linear MPC should be attainable with undergraduate control system engineering student's level of mathematical sophistication. With that in mind, I made a compact MPC library (without dependence on big library like Eigen) where the main goal is for the student to learn the MPC concept (I've made decision to sacrifice speed to get best code readability I could get) while still capable of tackling real-time control system implementation (the code is computed in **40 - 200 us**! See *Some Benchmark* section below).
 
 First, the prediction of the system we want to control can be described as (I'm using Jan Maciejowski's *Predictive Control with Constraints* as reference, great book btw):
 ![Prediction formulation](Formulation_of_Prediction_Variables.png "Click to maximize if the image rescaling make you dizzy")
@@ -48,7 +48,7 @@ The implementations are (from the simplest to the most advanced):
 The MPC code are spread over just 5 files (`matrix.h, matrix.cpp, mpc.h, mpc.cpp, konfig.h`) - read *How to Use* section below for more explanation.
 
 ## The first implementation description: The Naive Implementation
-The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as (the source code can be found in "[mpc_engl](mpc_engl)" folder):
+The Naive Implementation algorithm is just a direct implementation of the MPC derivation above. The MPC algorithm can be described as (the source code can be found in "[mpc_engl](mpc_engl)" folder, especially see "[mpc.cpp](mpc_engl/mpc.cpp)" file):
 ![MPC Naive algorithm](Kalkulasi.png "Click to maximize if the image rescaling make you dizzy")
 
 Note that the `H` matrix and (some of calculation inside) `G` matrix are actually constant. So we should be able to move them into initialization step (just need to calculate once).
@@ -58,7 +58,7 @@ The optimized version is exploiting 2 facts of The Naive Implementation ([thanks
 1. The `H` matrix and (some of calculation inside) `G` matrix (specifically the <img src="eq_render/2cthetatrQ.gif"  align="top"/> portion) are actually constant.
 2. The equation <img src="eq_render/duk=0.5hinvg.gif" align="middle"/> can be described as <img src="eq_render/duk=0.5hinv2cthetatrqQek=hinvcthetatrqQek.gif" align="middle"/>. And actually we don't need all row of the (constant) matrix <img src="eq_render/hinvcthetatrqQ.gif" align="top"/> (because we only need the first M-th row to calculate <img src="eq_render/duk.gif" align="top"/>).
 
-So we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as (the source code can be found in "[mpc_opt_engl](mpc_opt_engl)" folder):
+So we can move the optimization matrix constant into initialization stage and truncate the optimization matrix to shorten the calculation time. The MPC algorithm then can be described as (the source code can be found in "[mpc_opt_engl](mpc_opt_engl)" folder, especially see "[mpc.cpp](mpc_opt_engl/mpc.cpp)" file):
 ![MPC Optimized Naive algorithm](Kalkulasi_optimized.png "Click to maximize if the image rescaling make you dizzy")
 
 ## The third implementation description: The Numerically Robust Version
@@ -71,7 +71,7 @@ This statement stem from the fact that [squaring matrix with itself will increas
 We can avoid both issues by reformulate the optimal control problem as a least-squares problem (you can refer to MPC textbook for full explanation):
 ![MPC Numerically robust formulation](Penurunan_Least_Squares.png "Click to maximize if the image rescaling make you dizzy")
 
-The MPC algorithm then can be described as (the source code can be found in "[mpc_least_square_engl](mpc_least_square_engl)"):
+The MPC algorithm then can be described as (the source code can be found in "[mpc_least_square_engl](mpc_least_square_engl)", especially see "[mpc.cpp](mpc_least_square_engl/mpc.cpp)" file):
 ![MPC Numerically robust algorithm](Kalkulasi_as_least_squares.png "Click to maximize if the image rescaling make you dizzy")
 (I'm using householder transformation to calculate the QR decomposition).
 
